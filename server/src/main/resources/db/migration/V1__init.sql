@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS health_check (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(64) NOT NULL UNIQUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+INSERT INTO health_check (name)
+VALUES ('init')
+ON CONFLICT (name) DO NOTHING;
+
