@@ -1,6 +1,7 @@
 package eu.vitamo.app
 
 import eu.vitamo.app.di.initServerKoin
+import eu.vitamo.app.modules.configureHTTP
 import eu.vitamo.app.modules.configureSerialization
 import eu.vitamo.app.modules.configureStatusPages
 import io.ktor.server.application.*
@@ -17,6 +18,7 @@ fun main() {
 }
 
 fun Application.module() {
+    configureHTTP()
     configureSerialization()
     configureStatusPages()
 
