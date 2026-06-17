@@ -10,26 +10,26 @@ import eu.vitamo.app.features.auth.persistence.refresh.markCreated
 import eu.vitamo.app.features.auth.persistence.refresh.markExpires
 import eu.vitamo.app.features.auth.persistence.refresh.revoke
 import eu.vitamo.app.features.auth.persistence.refresh.touch
-import eu.vitamo.app.features.user.entity.UserEntity
 import eu.vitamo.app.features.user.table.UsersTable
 import kotlin.time.Clock
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import kotlin.uuid.Uuid
 
-class RefreshTokenService(
+open class RefreshTokenService(
     private val tokenHashService: TokenHashService,
 ) {
     fun create(
         authToken: AuthToken,
-        userEntity: UserEntity,
+        userId: Uuid,
         context: ClientContext?,
     ): RefreshTokenEntity = transaction {
         val now = Clock.System.now().epochSeconds
         val expiresAt = authToken.expiresAt.epochSeconds
         RefreshTokenEntity.new {
             tokenHash = tokenHashService.hash(authToken.token)
-            userId = userEntity.id
+            this.userId = EntityID(userId, UsersTable)
             applyClientContext(context)
             markExpires(expiresAt)
             markCreated(now)

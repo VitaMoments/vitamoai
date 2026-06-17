@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Email verification</title>
+</head>
+<body>
+    <p>Hi <span th:text="${displayName}">User</span>,</p>
+    <p>Your <span th:text="${appName}">VitaMo</span> verification code is <strong th:text="${code}">123456</strong>.</p>
+    <p>This code expires in <span th:text="${expiresInMinutes}">15</span> minutes.</p>
+</body>
+</html>

@@ -8,7 +8,10 @@ import io.ktor.server.application.install
 import io.ktor.server.application.pluginOrNull
 import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
+import eu.vitamo.app.api.contracts.auth.ApiErrorResponse
+import eu.vitamo.app.features.auth.model.AuthException
 import kotlinx.serialization.SerializationException
 import org.slf4j.LoggerFactory
 
@@ -55,7 +58,17 @@ fun Application.configureStatusPages() {
                 status = HttpStatusCode.BadRequest,
             )
         }
+
+        exception<AuthException> { call, cause ->
+            logger.warn("Auth request failed: {}", cause.code)
+            call.respond(
+                status = cause.status,
+                message = ApiErrorResponse(
+                    code = cause.code,
+                    message = cause.message,
+                ),
+            )
+        }
     }
 }
-
 

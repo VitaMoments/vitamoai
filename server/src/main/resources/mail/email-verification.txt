@@ -1,0 +1,4 @@
+Hi [(${displayName})],
+
+Your [(${appName})] verification code is [(${code})].
+This code expires in [(${expiresInMinutes})] minutes.

@@ -5,6 +5,7 @@ import eu.vitamo.app.modules.configureKoin
 import eu.vitamo.app.modules.configureSecurity
 import eu.vitamo.app.modules.configureSerialization
 import eu.vitamo.app.modules.configureStatusPages
+import eu.vitamo.app.features.auth.routes.authRoutes
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
@@ -24,6 +25,7 @@ fun Application.module() {
     configureSecurity()
 
     routing {
+        authRoutes()
         get("/") {
             call.respondText(sayHello("Ktor"))
         }

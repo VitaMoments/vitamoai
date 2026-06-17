@@ -27,6 +27,8 @@ dependencies {
     implementation(libs.ktor.server.auth.jvm)
     implementation(libs.ktor.server.auth.jwt.jvm)
     implementation(libs.ktor.serialization.kotlinx.json.jvm)
+    implementation(libs.thymeleaf)
+    implementation(libs.jakarta.mail)
 
     implementation(libs.exposed.core)
     implementation(libs.exposed.dao)

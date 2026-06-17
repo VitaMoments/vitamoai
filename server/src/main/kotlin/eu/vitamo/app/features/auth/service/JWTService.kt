@@ -10,7 +10,7 @@ import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
 
-class JWTService(
+open class JWTService(
     private val jwtConfig: JWTConfig,
 ) {
     fun generateAccessToken(userId: Uuid): AuthToken {
