@@ -1,4 +1,4 @@
-package eu.vitamo.app.auth.service
+package eu.vitamo.app.features.auth.service
 
 import java.security.MessageDigest
 
@@ -15,7 +15,11 @@ class Sha256TokenHashService : TokenHashService {
     }
 
     override fun matches(rawToken: String, hashedToken: String): Boolean {
-        return hash(rawToken) == hashedToken
+        val rawHash = hash(rawToken)
+
+        return MessageDigest.isEqual(
+            rawHash.toByteArray(Charsets.UTF_8),
+            hashedToken.toByteArray(Charsets.UTF_8)
+        )
     }
 }
-

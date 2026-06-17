@@ -1,9 +1,9 @@
-package eu.vitamo.app.auth.service
+package eu.vitamo.app.features.auth.service
 
 import com.auth0.jwt.JWT
-import eu.vitamo.app.auth.config.JWTConfig
-import eu.vitamo.app.auth.model.AuthToken
-import eu.vitamo.app.auth.model.AuthTokenType
+import eu.vitamo.app.config.JWTConfig
+import eu.vitamo.app.features.auth.model.AuthToken
+import eu.vitamo.app.features.auth.model.AuthTokenType
 import java.util.Date
 import java.util.UUID
 import kotlin.time.Clock

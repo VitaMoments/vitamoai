@@ -1,4 +1,4 @@
-package eu.vitamo.app.auth.model
+package eu.vitamo.app.features.auth.model
 
 enum class AuthTokenType {
     ACCESS,

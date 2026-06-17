@@ -1,6 +1,6 @@
 package eu.vitamo.app.di
 
-import eu.vitamo.app.auth.di.authModule
+import eu.vitamo.app.features.auth.di.authModule
 import eu.vitamo.app.database.DatabaseFactory
 import eu.vitamo.app.database.databaseModule
 import eu.vitamo.app.sayHello

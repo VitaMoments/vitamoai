@@ -1,4 +1,4 @@
-package eu.vitamo.app.auth.config
+package eu.vitamo.app.config
 
 import java.nio.file.Files
 import java.nio.file.Path

@@ -1,6 +1,6 @@
 package eu.vitamo.app.modules
 
-import eu.vitamo.app.auth.config.JWTConfig
+import eu.vitamo.app.config.JWTConfig
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.auth.HttpAuthHeader
 import io.ktor.server.application.Application

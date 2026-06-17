@@ -1,4 +1,4 @@
-package eu.vitamo.app.auth.config
+package eu.vitamo.app.config
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier

@@ -1,9 +1,9 @@
-package eu.vitamo.app.auth.persistence.refresh
+package eu.vitamo.app.features.auth.persistence.refresh
 
 import eu.vitamo.app.auth.ClientContext
 import eu.vitamo.app.auth.ClientPlatform
 import eu.vitamo.app.auth.ClientType
-import eu.vitamo.app.auth.persistence.users.UsersTable
+import eu.vitamo.app.features.user.table.UsersTable
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable

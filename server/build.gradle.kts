@@ -31,12 +31,14 @@ dependencies {
     implementation(libs.exposed.core)
     implementation(libs.exposed.dao)
     implementation(libs.exposed.jdbc)
+    implementation(libs.exposed.kotlin.datetime)
 
     implementation(libs.flyway.core)
     implementation(libs.flyway.database.postgresql)
 
     implementation(libs.postgresql)
     implementation(libs.hikari)
+    implementation(libs.jbcrypt)
 
     testImplementation(libs.ktor.serverTestHost)
     testImplementation(libs.kotlin.testJunit)

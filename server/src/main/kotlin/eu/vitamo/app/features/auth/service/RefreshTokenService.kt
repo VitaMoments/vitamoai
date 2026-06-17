@@ -1,17 +1,17 @@
-package eu.vitamo.app.auth.service
+package eu.vitamo.app.features.auth.service
 
 import eu.vitamo.app.auth.ClientContext
-import eu.vitamo.app.auth.model.AuthToken
-import eu.vitamo.app.auth.persistence.refresh.RefreshTokenEntity
-import eu.vitamo.app.auth.persistence.refresh.RefreshTokensTable
-import eu.vitamo.app.auth.persistence.refresh.applyClientContext
-import eu.vitamo.app.auth.persistence.refresh.isValid
-import eu.vitamo.app.auth.persistence.refresh.markCreated
-import eu.vitamo.app.auth.persistence.refresh.markExpires
-import eu.vitamo.app.auth.persistence.refresh.revoke
-import eu.vitamo.app.auth.persistence.refresh.touch
-import eu.vitamo.app.auth.persistence.users.UserEntity
-import eu.vitamo.app.auth.persistence.users.UsersTable
+import eu.vitamo.app.features.auth.model.AuthToken
+import eu.vitamo.app.features.auth.persistence.refresh.RefreshTokenEntity
+import eu.vitamo.app.features.auth.persistence.refresh.RefreshTokensTable
+import eu.vitamo.app.features.auth.persistence.refresh.applyClientContext
+import eu.vitamo.app.features.auth.persistence.refresh.isValid
+import eu.vitamo.app.features.auth.persistence.refresh.markCreated
+import eu.vitamo.app.features.auth.persistence.refresh.markExpires
+import eu.vitamo.app.features.auth.persistence.refresh.revoke
+import eu.vitamo.app.features.auth.persistence.refresh.touch
+import eu.vitamo.app.features.user.entity.UserEntity
+import eu.vitamo.app.features.user.table.UsersTable
 import kotlin.time.Clock
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
@@ -29,7 +29,7 @@ class RefreshTokenService(
         val expiresAt = authToken.expiresAt.epochSeconds
         RefreshTokenEntity.new {
             tokenHash = tokenHashService.hash(authToken.token)
-            userId = EntityID(userEntity.id.value, UsersTable)
+            userId = userEntity.id
             applyClientContext(context)
             markExpires(expiresAt)
             markCreated(now)
