@@ -318,6 +318,7 @@ If tests are not added, explain why.
 * Use string representation for `Uuid`.
 * Use ISO-8601 string representation for `Instant`.
 * Prefer `Instant` for exact timestamps such as `createdAt`, `updatedAt`, `expiresAt`, `deletedAt`, `lastLoginAt`.
+* Prefer Kotlin Clock.System for getting the current time instead of `Instant.now()` directly in business logic.
 * Use `LocalDate` for calendar dates.
 * Use `LocalTime` for time-of-day.
 * Use `LocalDateTime` only when a local date and time without timezone is truly intended.

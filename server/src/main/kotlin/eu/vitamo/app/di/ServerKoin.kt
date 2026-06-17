@@ -1,5 +1,6 @@
 package eu.vitamo.app.di
 
+import eu.vitamo.app.auth.di.authModule
 import eu.vitamo.app.database.DatabaseFactory
 import eu.vitamo.app.database.databaseModule
 import eu.vitamo.app.sayHello
@@ -14,19 +15,22 @@ internal val serverModule: Module = module {
     single { sayHello("server") }
 }
 
+private const val SKIP_DB_INIT_PROPERTY = "VITAMO_SKIP_DB_INIT"
+
 fun initServerKoin() {
-    if (koinStarted) {
+    if (koinStarted || GlobalContext.getOrNull() != null) {
+        koinStarted = true
         return
     }
 
     startKoin {
-        modules(serverModule, databaseModule)
+        modules(serverModule, databaseModule, authModule)
     }
 
-    GlobalContext.get().get<DatabaseFactory>().init()
+    val skipDbInit = System.getProperty(SKIP_DB_INIT_PROPERTY)?.toBooleanStrictOrNull() == true
+    if (!skipDbInit) {
+        GlobalContext.get().get<DatabaseFactory>().init()
+    }
 
     koinStarted = true
 }
-
-
-

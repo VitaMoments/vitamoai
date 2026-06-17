@@ -9,18 +9,20 @@ class DatabaseConfigTest {
     fun fromEnvironment_usesDefaultsWhenVariablesAreMissing() {
         val config = DatabaseConfig.fromEnvironment(environment = emptyMap())
 
-        assertEquals("jdbc:postgresql://localhost:5432/app", config.url)
+        assertEquals("jdbc:postgresql://localhost:5432/vitamoai", config.url)
         assertEquals("org.postgresql.Driver", config.driver)
         assertEquals("postgres", config.username)
         assertEquals("postgres", config.password)
-        assertEquals(10, config.maximumPoolSize)
+        assertEquals(3, config.maximumPoolSize)
     }
 
     @Test
     fun fromEnvironment_usesProvidedValues() {
         val config = DatabaseConfig.fromEnvironment(
             environment = mapOf(
-                "DATABASE_URL" to "jdbc:postgresql://localhost:5432/custom",
+                "DATABASE_HOST" to "localhost",
+                "DATABASE_PORT" to "5432",
+                "DATABASE_NAME" to "custom",
                 "DATABASE_USER" to "dbuser",
                 "DATABASE_PASSWORD" to "dbpass",
                 "DATABASE_MAX_POOL_SIZE" to "24",
@@ -40,7 +42,6 @@ class DatabaseConfigTest {
             environment = mapOf("DATABASE_MAX_POOL_SIZE" to "not-a-number"),
         )
 
-        assertEquals(10, config.maximumPoolSize)
+        assertEquals(3, config.maximumPoolSize)
     }
 }
-

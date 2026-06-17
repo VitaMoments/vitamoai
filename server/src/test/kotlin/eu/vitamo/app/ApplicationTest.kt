@@ -19,16 +19,28 @@ class ApplicationTest {
 
     @Test
     fun testRoot() = testApplication {
+        System.setProperty("VITAMO_SKIP_DB_INIT", "true")
+        System.setProperty("JWT_ISSUER", "test-issuer")
+        System.setProperty("JWT_AUDIENCE", "test-audience")
+        System.setProperty("JWT_SECRET", "test-secret")
         application {
             module()
         }
         val response = client.get("/")
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("Hello, Ktor!", response.bodyAsText())
+        System.clearProperty("VITAMO_SKIP_DB_INIT")
+        System.clearProperty("JWT_ISSUER")
+        System.clearProperty("JWT_AUDIENCE")
+        System.clearProperty("JWT_SECRET")
     }
 
     @Test
     fun malformedJson_returnsBadRequest() = testApplication {
+        System.setProperty("VITAMO_SKIP_DB_INIT", "true")
+        System.setProperty("JWT_ISSUER", "test-issuer")
+        System.setProperty("JWT_AUDIENCE", "test-audience")
+        System.setProperty("JWT_SECRET", "test-secret")
         application {
             module()
             routing {
@@ -46,5 +58,9 @@ class ApplicationTest {
 
         assertEquals(HttpStatusCode.BadRequest, response.status)
         assertEquals("Invalid JSON", response.bodyAsText())
+        System.clearProperty("VITAMO_SKIP_DB_INIT")
+        System.clearProperty("JWT_ISSUER")
+        System.clearProperty("JWT_AUDIENCE")
+        System.clearProperty("JWT_SECRET")
     }
 }
