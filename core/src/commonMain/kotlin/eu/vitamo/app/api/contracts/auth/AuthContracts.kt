@@ -31,7 +31,7 @@ data class LoginRequest(
 
 @Serializable
 data class LoginResponse(
-    val user: AuthenticatedUser,
+    val user: AuthenticatedUser
 )
 
 @Serializable
@@ -42,8 +42,19 @@ data class VerifyEmailRequest(
 
 @Serializable
 data class VerifyEmailResponse(
+    val user: AuthenticatedUser? = null,
     val message: String,
     val verified: Boolean,
+)
+
+@Serializable
+data class ResendEmailVerificationRequest(
+    val email: String,
+)
+
+@Serializable
+data class ResendEmailVerificationResponse(
+    val message: String,
 )
 
 @Serializable

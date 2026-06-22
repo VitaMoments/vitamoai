@@ -3,10 +3,12 @@ package eu.vitamo.app.features.auth.routes
 import eu.vitamo.app.api.contracts.auth.LoginRequest
 import eu.vitamo.app.api.contracts.auth.LoginResponse
 import eu.vitamo.app.api.contracts.auth.RegisterRequest
+import eu.vitamo.app.api.contracts.auth.ResendEmailVerificationRequest
 import eu.vitamo.app.api.contracts.auth.VerifyEmailRequest
 import eu.vitamo.app.features.auth.model.LoginSession
 import eu.vitamo.app.features.auth.usecase.LoginUseCase
 import eu.vitamo.app.features.auth.usecase.RegisterUseCase
+import eu.vitamo.app.features.auth.usecase.ResendEmailVerificationUseCase
 import eu.vitamo.app.features.auth.usecase.VerifyEmailUseCase
 import eu.vitamo.app.features.user.mapper.toAuthenticatedUser
 import io.ktor.http.HttpHeaders
@@ -35,13 +37,25 @@ fun Route.authRoutes() {
         call.respond(verifyEmailUseCase.verify(request))
     }
 
+    post("/auth/resend-email-verification") {
+        val koin = GlobalContext.get()
+        val resendEmailVerificationUseCase = koin.get<ResendEmailVerificationUseCase>()
+        val request = call.receive<ResendEmailVerificationRequest>()
+        val response = resendEmailVerificationUseCase.resend(request)
+        call.respond(HttpStatusCode.OK, response)
+    }
+
     post("/auth/login") {
         val koin = GlobalContext.get()
         val loginUseCase = koin.get<LoginUseCase>()
         val request = call.receive<LoginRequest>()
         val session = loginUseCase.login(request)
         appendAuthCookies(call, session)
-        call.respond(LoginResponse(user = session.user.toAuthenticatedUser()))
+        call.respond(
+            LoginResponse(
+                user = session.user.toAuthenticatedUser()
+            )
+        )
     }
 }
 

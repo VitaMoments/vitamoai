@@ -6,6 +6,7 @@ import eu.vitamo.app.features.auth.model.AuthException
 import eu.vitamo.app.features.auth.model.EmailVerificationPurpose
 import eu.vitamo.app.features.auth.repository.EmailVerificationChallengeRepository
 import eu.vitamo.app.features.auth.service.TokenHashService
+import eu.vitamo.app.features.user.mapper.toAuthenticatedUser
 import eu.vitamo.app.features.user.repository.UserRepository
 import io.ktor.http.HttpStatusCode
 import kotlin.time.Clock
@@ -23,7 +24,8 @@ class VerifyEmailUseCase(
 
         if (user.emailVerifiedAt != null) {
             return VerifyEmailResponse(
-                message = "Email verified successfully.",
+                user = user.toAuthenticatedUser(),
+                message = "Email already verified.",
                 verified = true,
             )
         }
@@ -35,22 +37,14 @@ class VerifyEmailUseCase(
         ) ?: throw invalidCode()
 
         if (challenge.attempts >= MAX_ATTEMPTS) {
-            throw AuthException(
-                code = "VERIFICATION_ATTEMPTS_EXCEEDED",
-                message = "Verification attempts exceeded.",
-                status = HttpStatusCode.TooManyRequests,
-            )
+            throw AuthException.VerificationAttemptsExceeded()
         }
 
         if (!tokenHashService.matches(request.code.trim(), challenge.codeHash)) {
             val nextAttempt = challenge.attempts + 1
             challengeRepository.incrementAttempts(challenge.id, now)
             if (nextAttempt >= MAX_ATTEMPTS) {
-                throw AuthException(
-                    code = "VERIFICATION_ATTEMPTS_EXCEEDED",
-                    message = "Verification attempts exceeded.",
-                    status = HttpStatusCode.TooManyRequests,
-                )
+                throw AuthException.VerificationAttemptsExceeded()
             }
             throw invalidCode()
         }
@@ -59,6 +53,7 @@ class VerifyEmailUseCase(
         userRepository.markEmailVerified(user.id, now, now.epochSeconds)
 
         return VerifyEmailResponse(
+            user = user.toAuthenticatedUser(),
             message = "Email verified successfully.",
             verified = true,
         )
@@ -69,11 +64,7 @@ class VerifyEmailUseCase(
     }
 
     private fun invalidCode(): AuthException {
-        return AuthException(
-            code = "INVALID_VERIFICATION_CODE",
-            message = "Invalid verification code.",
-            status = HttpStatusCode.BadRequest,
-        )
+        return AuthException.InvalidVerificationCode()
     }
 
     private companion object {

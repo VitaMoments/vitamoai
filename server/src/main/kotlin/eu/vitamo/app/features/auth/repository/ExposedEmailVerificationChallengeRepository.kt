@@ -52,6 +52,19 @@ class ExposedEmailVerificationChallengeRepository : EmailVerificationChallengeRe
             ?.toModel()
     }
 
+    override fun findLatestByEmailAndPurpose(
+        email: String,
+        purpose: EmailVerificationPurpose,
+    ): EmailVerificationChallenge? = transaction {
+        EmailVerificationChallengeEntity.find {
+            (EmailVerificationChallengesTable.email eq email) and
+                (EmailVerificationChallengesTable.purpose eq purpose.name)
+        }
+            .orderBy(EmailVerificationChallengesTable.createdAt to SortOrder.DESC)
+            .firstOrNull()
+            ?.toModel()
+    }
+
     override fun deleteById(id: Uuid) {
         transaction {
             EmailVerificationChallengeEntity.findById(id)?.delete()
@@ -64,6 +77,25 @@ class ExposedEmailVerificationChallengeRepository : EmailVerificationChallengeRe
                 it.consumedAt = consumedAt
                 it.lastAttemptAt = consumedAt
             }
+        }
+    }
+
+    override fun consumeActiveForUserAndPurpose(
+        userId: Uuid,
+        purpose: EmailVerificationPurpose,
+        consumedAt: Instant,
+    ) {
+        transaction {
+            EmailVerificationChallengeEntity.find {
+                (EmailVerificationChallengesTable.userId eq EntityID(userId, UsersTable)) and
+                    (EmailVerificationChallengesTable.purpose eq purpose.name)
+            }
+                .forEach { entity ->
+                    if (entity.consumedAt == null && entity.expiresAt > consumedAt) {
+                        entity.consumedAt = consumedAt
+                        entity.lastAttemptAt = consumedAt
+                    }
+                }
         }
     }
 

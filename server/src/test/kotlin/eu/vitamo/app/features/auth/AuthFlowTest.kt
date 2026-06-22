@@ -246,11 +246,24 @@ class AuthFlowTest {
             now: Instant,
         ): EmailVerificationChallenge? = challenge?.copy(attempts = attempts)
 
+        override fun findLatestByEmailAndPurpose(
+            email: String,
+            purpose: EmailVerificationPurpose,
+        ): EmailVerificationChallenge? = challenge
+
         override fun deleteById(id: Uuid) {
             // no-op in the test fake
         }
 
         override fun markConsumed(id: Uuid, consumedAt: Instant) {
+            consumedCount += 1
+        }
+
+        override fun consumeActiveForUserAndPurpose(
+            userId: Uuid,
+            purpose: EmailVerificationPurpose,
+            consumedAt: Instant,
+        ) {
             consumedCount += 1
         }
 

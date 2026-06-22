@@ -1,6 +1,5 @@
 package eu.vitamo.app.features.auth.table
 
-import eu.vitamo.app.features.auth.model.EmailVerificationPurpose
 import eu.vitamo.app.features.user.table.UsersTable
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable

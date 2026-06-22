@@ -5,7 +5,6 @@ import eu.vitamo.app.features.user.entity.UserEntity
 import eu.vitamo.app.features.user.model.UserAccount
 import eu.vitamo.app.features.user.table.UsersTable
 import kotlinx.datetime.LocalDate
-import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import kotlin.time.Instant

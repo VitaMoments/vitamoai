@@ -1,7 +1,5 @@
 package eu.vitamo.app.config
 
-import java.nio.file.Files
-import java.nio.file.Path
 import java.util.Properties
 
 object JWTConfigLoader {
@@ -16,43 +14,56 @@ object JWTConfigLoader {
     fun loadOrThrow(
         environment: Map<String, String> = System.getenv(),
         systemProperties: Properties = System.getProperties(),
-        dotEnvPath: Path = Path.of(".env"),
     ): JWTConfig {
-        val dotEnvValues = loadDotEnv(dotEnvPath)
+        val issuer = readRequired(
+            key = JWT_ISSUER,
+            environment = environment,
+            systemProperties = systemProperties,
+        )
 
-        val issuer = readRequired(JWT_ISSUER, environment, systemProperties, dotEnvValues)
-        val audience = readRequired(JWT_AUDIENCE, environment, systemProperties, dotEnvValues)
-        val secret = readRequired(JWT_SECRET, environment, systemProperties, dotEnvValues)
+        val audience = readRequired(
+            key = JWT_AUDIENCE,
+            environment = environment,
+            systemProperties = systemProperties,
+        )
+
+        val secret = readRequired(
+            key = JWT_SECRET,
+            environment = environment,
+            systemProperties = systemProperties,
+        )
 
         val realm = readOptional(
             key = JWT_REALM,
             environment = environment,
             systemProperties = systemProperties,
-            dotEnvValues = dotEnvValues,
             defaultValue = "access",
         )
 
-        val accessExpiration = readOptional(
+        val accessExpirationRaw = readOptional(
             key = JWT_ACCESS_EXP_SECONDS,
             environment = environment,
             systemProperties = systemProperties,
-            dotEnvValues = dotEnvValues,
             defaultValue = readOptional(
                 key = JWT_EXP_SECONDS,
                 environment = environment,
                 systemProperties = systemProperties,
-                dotEnvValues = dotEnvValues,
                 defaultValue = "3600",
             ),
-        ).toLongOrNull() ?: error("Invalid value for $JWT_ACCESS_EXP_SECONDS")
+        )
 
-        val refreshExpiration = readOptional(
+        val accessExpiration = accessExpirationRaw.toLongOrNull()
+            ?: error("Invalid value for $JWT_ACCESS_EXP_SECONDS")
+
+        val refreshExpirationRaw = readOptional(
             key = JWT_REFRESH_EXP_SECONDS,
             environment = environment,
             systemProperties = systemProperties,
-            dotEnvValues = dotEnvValues,
             defaultValue = "604800",
-        ).toLongOrNull() ?: error("Invalid value for $JWT_REFRESH_EXP_SECONDS")
+        )
+
+        val refreshExpiration = refreshExpirationRaw.toLongOrNull()
+            ?: error("Invalid value for $JWT_REFRESH_EXP_SECONDS")
 
         return JWTConfig(
             issuer = issuer,
@@ -68,13 +79,11 @@ object JWTConfigLoader {
         key: String,
         environment: Map<String, String>,
         systemProperties: Properties,
-        dotEnvValues: Map<String, String>,
     ): String {
         return readOptional(
             key = key,
             environment = environment,
             systemProperties = systemProperties,
-            dotEnvValues = dotEnvValues,
             defaultValue = "",
         ).ifBlank {
             error("Missing required JWT config value: $key")
@@ -85,31 +94,15 @@ object JWTConfigLoader {
         key: String,
         environment: Map<String, String>,
         systemProperties: Properties,
-        dotEnvValues: Map<String, String>,
         defaultValue: String,
     ): String {
-        return environment[key]
-            ?: systemProperties.getProperty(key)
-            ?: dotEnvValues[key]
+        return EnvLoader.read(
+            key = key,
+            environment = environment,
+            systemProperties = systemProperties,
+        )
+            ?.trim()
+            ?.takeIf { it.isNotBlank() }
             ?: defaultValue
-    }
-
-    private fun loadDotEnv(dotEnvPath: Path): Map<String, String> {
-        if (!Files.exists(dotEnvPath)) {
-            return emptyMap()
-        }
-
-        return Files.readAllLines(dotEnvPath)
-            .asSequence()
-            .map(String::trim)
-            .filter { it.isNotBlank() && !it.startsWith("#") && it.contains("=") }
-            .map { line ->
-                val separatorIndex = line.indexOf('=')
-                val key = line.substring(0, separatorIndex).trim()
-                val value = line.substring(separatorIndex + 1).trim().trim('"', '\'')
-                key to value
-            }
-            .filter { (key, _) -> key.isNotBlank() }
-            .toMap()
     }
 }

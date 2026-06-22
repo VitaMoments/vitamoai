@@ -21,9 +21,20 @@ interface EmailVerificationChallengeRepository {
         now: Instant,
     ): EmailVerificationChallenge?
 
+    fun findLatestByEmailAndPurpose(
+        email: String,
+        purpose: EmailVerificationPurpose,
+    ): EmailVerificationChallenge?
+
     fun deleteById(id: Uuid)
 
     fun markConsumed(id: Uuid, consumedAt: Instant)
+
+    fun consumeActiveForUserAndPurpose(
+        userId: Uuid,
+        purpose: EmailVerificationPurpose,
+        consumedAt: Instant,
+    )
 
     fun incrementAttempts(id: Uuid, attemptedAt: Instant)
 }

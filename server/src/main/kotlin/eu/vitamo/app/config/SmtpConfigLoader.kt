@@ -1,7 +1,5 @@
 package eu.vitamo.app.config
 
-import java.nio.file.Files
-import java.nio.file.Path
 import java.util.Properties
 
 object SmtpConfigLoader {
@@ -18,59 +16,45 @@ object SmtpConfigLoader {
     fun loadOrThrow(
         environment: Map<String, String> = System.getenv(),
         systemProperties: Properties = System.getProperties(),
-        dotEnvPath: Path = Path.of(".env"),
+        valueReader: (String) -> String? = { key -> EnvLoader.read(key, environment, systemProperties) },
     ): SmtpConfig {
-        val dotEnvValues = loadDotEnv(dotEnvPath)
-
-        val host = readRequired(SMTP_HOST, environment, systemProperties, dotEnvValues)
-        val username = readRequired(SMTP_USERNAME, environment, systemProperties, dotEnvValues)
-        val password = readRequired(SMTP_PASSWORD, environment, systemProperties, dotEnvValues)
+        val host = readRequired(SMTP_HOST, valueReader)
+        val username = readRequired(SMTP_USERNAME, valueReader)
+        val password = readRequired(SMTP_PASSWORD, valueReader)
 
         val port = readOptional(
             key = SMTP_PORT,
-            environment = environment,
-            systemProperties = systemProperties,
-            dotEnvValues = dotEnvValues,
+            valueReader = valueReader,
             defaultValue = "465",
         ).toIntOrNull() ?: error("Invalid value for $SMTP_PORT")
 
         val fromAddress = readOptional(
             key = SMTP_FROM_ADDRESS,
-            environment = environment,
-            systemProperties = systemProperties,
-            dotEnvValues = dotEnvValues,
+            valueReader = valueReader,
             defaultValue = username,
         )
 
         val fromName = readOptional(
             key = SMTP_FROM_NAME,
-            environment = environment,
-            systemProperties = systemProperties,
-            dotEnvValues = dotEnvValues,
+            valueReader = valueReader,
             defaultValue = "VitaMo",
         )
 
         val sslEnabled = readOptional(
             key = SMTP_SSL_ENABLED,
-            environment = environment,
-            systemProperties = systemProperties,
-            dotEnvValues = dotEnvValues,
+            valueReader = valueReader,
             defaultValue = if (port == 465) "true" else "false",
         ).toBooleanStrictOrNull() ?: error("Invalid value for $SMTP_SSL_ENABLED")
 
         val startTlsEnabled = readOptional(
             key = SMTP_STARTTLS_ENABLED,
-            environment = environment,
-            systemProperties = systemProperties,
-            dotEnvValues = dotEnvValues,
+            valueReader = valueReader,
             defaultValue = if (port == 587) "true" else "false",
         ).toBooleanStrictOrNull() ?: error("Invalid value for $SMTP_STARTTLS_ENABLED")
 
         val authEnabled = readOptional(
             key = SMTP_AUTH_ENABLED,
-            environment = environment,
-            systemProperties = systemProperties,
-            dotEnvValues = dotEnvValues,
+            valueReader = valueReader,
             defaultValue = "true",
         ).toBooleanStrictOrNull() ?: error("Invalid value for $SMTP_AUTH_ENABLED")
 
@@ -89,15 +73,11 @@ object SmtpConfigLoader {
 
     private fun readRequired(
         key: String,
-        environment: Map<String, String>,
-        systemProperties: Properties,
-        dotEnvValues: Map<String, String>,
+        valueReader: (String) -> String?,
     ): String {
         return readOptional(
             key = key,
-            environment = environment,
-            systemProperties = systemProperties,
-            dotEnvValues = dotEnvValues,
+            valueReader = valueReader,
             defaultValue = "",
         ).ifBlank {
             error("Missing required SMTP config value: $key")
@@ -106,34 +86,11 @@ object SmtpConfigLoader {
 
     private fun readOptional(
         key: String,
-        environment: Map<String, String>,
-        systemProperties: Properties,
-        dotEnvValues: Map<String, String>,
+        valueReader: (String) -> String?,
         defaultValue: String,
     ): String {
-        return (environment[key]
-            ?: systemProperties.getProperty(key)
-            ?: dotEnvValues[key]
+        return valueReader(key)?.trim()
+            ?.takeIf { it.isNotBlank() }
             ?: defaultValue
-        ).trim().ifBlank { defaultValue }
-    }
-
-    private fun loadDotEnv(dotEnvPath: Path): Map<String, String> {
-        if (!Files.exists(dotEnvPath)) {
-            return emptyMap()
-        }
-
-        return Files.readAllLines(dotEnvPath)
-            .asSequence()
-            .map(String::trim)
-            .filter { it.isNotBlank() && !it.startsWith("#") && it.contains("=") }
-            .map { line ->
-                val separatorIndex = line.indexOf('=')
-                val key = line.substring(0, separatorIndex).trim()
-                val value = line.substring(separatorIndex + 1).trim().trim('"', '\'')
-                key to value
-            }
-            .filter { (key, _) -> key.isNotBlank() }
-            .toMap()
     }
 }

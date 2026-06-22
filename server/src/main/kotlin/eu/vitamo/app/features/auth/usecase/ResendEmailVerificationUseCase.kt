@@ -1,47 +1,49 @@
 package eu.vitamo.app.features.auth.usecase
 
-import eu.vitamo.app.api.contracts.auth.RegisterRequest
-import eu.vitamo.app.api.contracts.auth.RegisterResponse
+import eu.vitamo.app.api.contracts.auth.ResendEmailVerificationRequest
+import eu.vitamo.app.api.contracts.auth.ResendEmailVerificationResponse
 import eu.vitamo.app.features.auth.model.AuthException
 import eu.vitamo.app.features.auth.model.EmailVerificationPurpose
 import eu.vitamo.app.features.auth.repository.EmailVerificationChallengeRepository
 import eu.vitamo.app.features.auth.service.EmailVerificationCodeService
 import eu.vitamo.app.features.auth.service.EmailVerificationMailSender
 import eu.vitamo.app.features.auth.service.TokenHashService
-import eu.vitamo.app.infrastructure.security.PasswordHashService
 import eu.vitamo.app.features.user.repository.UserRepository
 import io.ktor.http.HttpStatusCode
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
-class RegisterUseCase(
+class ResendEmailVerificationUseCase(
     private val userRepository: UserRepository,
     private val challengeRepository: EmailVerificationChallengeRepository,
     private val codeService: EmailVerificationCodeService,
     private val mailSender: EmailVerificationMailSender,
     private val tokenHashService: TokenHashService,
-    private val passwordHashService: PasswordHashService,
 ) {
-    suspend fun register(request: RegisterRequest): RegisterResponse {
+    suspend fun resend(request: ResendEmailVerificationRequest): ResendEmailVerificationResponse {
         val email = normalizeEmail(request.email)
-        if (userRepository.findByEmail(email) != null) {
-            throw AuthException.EmailAlreadyExists()
+        val user = userRepository.findByEmail(email) ?: return genericResponse()
+
+        if (user.emailVerifiedAt != null) {
+            return genericResponse()
         }
 
         val now = Clock.System.now()
-        val createdAt = now.epochSeconds
-        val user = userRepository.createUser(
+        val latestChallenge = challengeRepository.findLatestByEmailAndPurpose(
             email = email,
-            displayName = request.displayName.trim(),
-            hashedPassword = passwordHashService.hashPassword(request.password),
-            firstName = request.firstName?.trim()?.ifBlank { null },
-            lastName = request.lastName?.trim()?.ifBlank { null },
-            alias = request.alias?.trim()?.ifBlank { null },
-            birthDate = request.birthDate,
-            now = createdAt,
+            purpose = EmailVerificationPurpose.REGISTER_EMAIL_VERIFY,
         )
+        if (latestChallenge != null && latestChallenge.createdAt >= now - RESEND_COOLDOWN) {
+            return genericResponse()
+        }
+
         val code = codeService.generateCode()
-        val expiresAt = now + VERIFICATION_CODE_TTL
+        challengeRepository.consumeActiveForUserAndPurpose(
+            userId = user.id,
+            purpose = EmailVerificationPurpose.REGISTER_EMAIL_VERIFY,
+            consumedAt = now,
+        )
 
         val challenge = challengeRepository.create(
             userId = user.id,
@@ -49,7 +51,7 @@ class RegisterUseCase(
             codeHash = tokenHashService.hash(code),
             purpose = EmailVerificationPurpose.REGISTER_EMAIL_VERIFY,
             createdAt = now,
-            expiresAt = expiresAt,
+            expiresAt = now + VERIFICATION_CODE_TTL,
         )
 
         try {
@@ -61,25 +63,33 @@ class RegisterUseCase(
             )
         } catch (exception: Exception) {
             challengeRepository.deleteById(challenge.id)
-            userRepository.deleteById(user.id)
             throw AuthException.EmailVerificationFailed()
         }
 
-        return RegisterResponse(
-            message = "Registration successful. Please verify your email.",
-            emailVerificationRequired = true,
-        )
+        return genericResponse()
     }
 
     private fun normalizeEmail(email: String): String {
-        return email.trim().lowercase().ifBlank {
+        val normalized = email.trim().lowercase()
+        if (normalized.isBlank() || !EMAIL_REGEX.matches(normalized)) {
             throw AuthException.BadRequest(
-                message = "Email is required.",
+                code = AuthException.INVALID_EMAIL_CODE,
+                message = "Email is invalid."
             )
         }
+        return normalized
+    }
+
+    private fun genericResponse(): ResendEmailVerificationResponse {
+        return ResendEmailVerificationResponse(
+            message = GENERIC_MESSAGE,
+        )
     }
 
     private companion object {
         val VERIFICATION_CODE_TTL = 15.minutes
+        val RESEND_COOLDOWN = 60.seconds
+        val EMAIL_REGEX = Regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")
+        const val GENERIC_MESSAGE = "If an account exists and requires verification, a new verification email has been sent."
     }
 }

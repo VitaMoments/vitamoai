@@ -18,18 +18,14 @@ class LoginUseCase(
     fun login(request: LoginRequest): LoginSession {
         val email = normalizeEmail(request.email)
         val user = userRepository.findByEmail(email)
-            ?: throw invalidCredentials()
+            ?: throw AuthException.InvalidCredentials()
 
         if (!passwordHashService.verifyPassword(request.password, user.hashedPassword)) {
-            throw invalidCredentials()
+            throw AuthException.InvalidCredentials()
         }
 
         if (user.emailVerifiedAt == null) {
-            throw AuthException(
-                code = "EMAIL_NOT_VERIFIED",
-                message = "Email not verified.",
-                status = HttpStatusCode.Forbidden,
-            )
+            throw AuthException.EmailNotVerified()
         }
 
         val accessToken = jwtService.generateAccessToken(user.id)
@@ -45,15 +41,7 @@ class LoginUseCase(
 
     private fun normalizeEmail(email: String): String {
         return email.trim().lowercase().ifBlank {
-            throw invalidCredentials()
+            throw AuthException.InvalidCredentials()
         }
-    }
-
-    private fun invalidCredentials(): AuthException {
-        return AuthException(
-            code = "INVALID_CREDENTIALS",
-            message = "Invalid email or password.",
-            status = HttpStatusCode.Unauthorized,
-        )
     }
 }

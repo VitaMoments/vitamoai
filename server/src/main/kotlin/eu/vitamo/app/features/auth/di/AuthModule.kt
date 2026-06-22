@@ -13,6 +13,7 @@ import eu.vitamo.app.features.auth.service.Sha256TokenHashService
 import eu.vitamo.app.features.auth.service.TokenHashService
 import eu.vitamo.app.features.auth.usecase.LoginUseCase
 import eu.vitamo.app.features.auth.usecase.RegisterUseCase
+import eu.vitamo.app.features.auth.usecase.ResendEmailVerificationUseCase
 import eu.vitamo.app.features.auth.usecase.VerifyEmailUseCase
 import eu.vitamo.app.features.user.repository.ExposedUserRepository
 import eu.vitamo.app.features.user.repository.UserRepository
@@ -38,6 +39,7 @@ val authModule = module {
     single { RefreshTokenService(get()) }
 
     single { RegisterUseCase(get(), get(), get(), get(), get(), get()) }
+    single { ResendEmailVerificationUseCase(get(), get(), get(), get(), get()) }
     single { VerifyEmailUseCase(get(), get(), get()) }
     single { LoginUseCase(get(), get(), get(), get()) }
 }

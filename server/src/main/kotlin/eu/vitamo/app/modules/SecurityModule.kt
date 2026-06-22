@@ -10,15 +10,14 @@ import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.response.respondText
-import org.koin.core.context.GlobalContext
+import org.koin.ktor.ext.inject
 
 fun Application.configureSecurity() {
+    val jwtConfig: JWTConfig by inject()
+
     if (pluginOrNull(Authentication) != null) {
         return
     }
-
-    val koin = GlobalContext.get()
-    val jwtConfig = koin.get<JWTConfig>()
 
     install(Authentication) {
         jwt("cookie-jwt-authentication") {
