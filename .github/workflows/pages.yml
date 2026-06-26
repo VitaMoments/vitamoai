@@ -56,6 +56,9 @@ jobs:
       - name: Add SPA fallback
         run: cp webApp/dist/index.html webApp/dist/404.html
 
+      - name: Add custom domain
+        run: echo "www.vitamo.eu" > webApp/dist/CNAME
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: webApp/dist
