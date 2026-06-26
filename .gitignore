@@ -19,3 +19,48 @@ captures
 node_modules/
 
 .env
+
+# Logs
+webApp/logs
+webApp/*.log
+webApp/npm-debug.log*
+webApp/yarn-debug.log*
+webApp/yarn-error.log*
+webApp/pnpm-debug.log*
+webApp/lerna-debug.log*
+
+# Dependencies
+webApp/node_modules
+
+# Build output
+webApp/dist
+webApp/dist-ssr
+webApp/coverage
+
+# Cache
+./webApp/.npm-cache
+./webApp/.npm-cache-user
+./webApp/.npm
+./webApp/.pnpm-store
+./webApp/.cache
+./webApp/.vite
+
+# Environment
+webApp/.env
+webApp/.env.*
+!webApp/.env.example
+
+# Local files
+webApp/*.local
+
+# Editor directories and files
+webApp/.vscode/*
+!webApp/.vscode/extensions.json
+webApp/.idea
+webApp/.DS_Store
+webApp/*.suo
+webApp/*.ntvs*
+webApp/*.njsproj
+webApp/*.sln
+webApp/*.sw?
+
