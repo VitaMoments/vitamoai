@@ -36,6 +36,23 @@ jobs:
         env:
           VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
 
+      - name: Show dist contents
+        run: |
+          echo "Root:"
+          ls -la
+          echo ""
+          echo "webApp:"
+          ls -la webApp
+          echo ""
+          echo "webApp/dist:"
+          ls -la webApp/dist
+          echo ""
+          echo "Files in dist:"
+          find webApp/dist -maxdepth 3 -type f
+          echo ""
+          echo "index.html preview:"
+          sed -n '1,80p' webApp/dist/index.html
+
       - name: Add SPA fallback
         run: cp webApp/dist/index.html webApp/dist/404.html
 
