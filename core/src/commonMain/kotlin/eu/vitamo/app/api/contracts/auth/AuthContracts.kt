@@ -42,7 +42,7 @@ data class VerifyEmailRequest(
 
 @Serializable
 data class VerifyEmailResponse(
-    val user: AuthenticatedUser? = null,
+    val user: AuthenticatedUser,
     val message: String,
     val verified: Boolean,
 )
@@ -58,7 +58,29 @@ data class ResendEmailVerificationResponse(
 )
 
 @Serializable
-data class ApiErrorResponse(
-    val code: String,
+data class SessionResponse(
+    val user: AuthenticatedUser,
+)
+
+@Serializable
+data class ForgotPasswordRequest(
+    val email: String,
+)
+
+@Serializable
+data class ForgotPasswordResponse(
+    val message: String = "If an account exists for this email, a password reset link has been sent."
+)
+
+@Serializable
+data class ResetPasswordRequest(
+    val email: String,
+    val token: String,
+    val newPassword: String,
+)
+
+@Serializable
+data class ResetPasswordResponse(
     val message: String,
+    val passwordChanged: Boolean,
 )

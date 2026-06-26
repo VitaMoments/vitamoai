@@ -1,19 +1,21 @@
 package eu.vitamo.app.features.user.repository
 
 import eu.vitamo.app.api.contracts.user.UserRole
+import eu.vitamo.app.features.user.entity.UserEntity
 import eu.vitamo.app.features.user.model.UserAccount
 import kotlinx.datetime.LocalDate
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 interface UserRepository {
-    fun findByEmail(email: String): UserAccount?
+    suspend fun findByEmail(email: String): UserAccount?
+    suspend fun findByEmailAsEntity(email: String): UserEntity?
 
-    fun findById(id: Uuid): UserAccount?
+    suspend fun findById(id: Uuid): UserAccount?
 
     fun deleteById(id: Uuid)
 
-    fun createUser(
+    suspend fun createUser(
         email: String,
         displayName: String,
         hashedPassword: String,
@@ -25,4 +27,6 @@ interface UserRepository {
     ): UserAccount
 
     fun markEmailVerified(id: Uuid, emailVerifiedAt: Instant, updatedAt: Long)
+
+    fun updatePassword(userid: Uuid, hashedPassword: String)
 }

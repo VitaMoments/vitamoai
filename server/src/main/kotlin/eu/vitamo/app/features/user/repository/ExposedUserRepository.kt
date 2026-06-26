@@ -1,23 +1,36 @@
 package eu.vitamo.app.features.user.repository
 
 import eu.vitamo.app.api.contracts.user.UserRole
+import eu.vitamo.app.database.helpers.dbQuery
 import eu.vitamo.app.features.user.entity.UserEntity
 import eu.vitamo.app.features.user.model.UserAccount
 import eu.vitamo.app.features.user.table.UsersTable
 import kotlinx.datetime.LocalDate
+import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.isNull
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 class ExposedUserRepository : UserRepository {
-    override fun findByEmail(email: String): UserAccount? = transaction {
-        UserEntity.find { UsersTable.email eq email }
-            .firstOrNull()
-            ?.toUserAccount()
+    override suspend fun findByEmail(email: String): UserAccount? = dbQuery {
+        findByEmailAsEntityInternal(email)?.toUserAccount()
     }
 
-    override fun findById(id: Uuid): UserAccount? = transaction {
+    override suspend fun findByEmailAsEntity(email: String): UserEntity? = dbQuery {
+        findByEmailAsEntityInternal(email)
+    }
+
+    private fun findByEmailAsEntityInternal(email: String): UserEntity? {
+        return UserEntity.find {
+            (UsersTable.email eq email.trim().lowercase()) and
+                    UsersTable.deletedAt.isNull()
+        }.firstOrNull()
+    }
+
+    override suspend fun findById(id: Uuid): UserAccount? = dbQuery {
         UserEntity.findById(id)?.toUserAccount()
     }
 
@@ -27,7 +40,7 @@ class ExposedUserRepository : UserRepository {
         }
     }
 
-    override fun createUser(
+    override suspend fun createUser(
         email: String,
         displayName: String,
         hashedPassword: String,
@@ -36,7 +49,7 @@ class ExposedUserRepository : UserRepository {
         alias: String?,
         birthDate: LocalDate?,
         now: Long,
-    ): UserAccount = transaction {
+    ): UserAccount = dbQuery {
         UserEntity.new {
             this.email = email
             this.displayName = displayName
@@ -59,6 +72,15 @@ class ExposedUserRepository : UserRepository {
             UserEntity.findById(id)?.let {
                 it.emailVerifiedAt = emailVerifiedAt
                 it.updatedAt = updatedAt
+            }
+        }
+    }
+
+    override fun updatePassword(userid: Uuid, hashedPassword: String) {
+        transaction {
+            UserEntity.findById(userid)?.let {
+                it.hashedPassword = hashedPassword
+                it.updatedAt = Clock.System.now().toEpochMilliseconds()
             }
         }
     }

@@ -16,8 +16,10 @@ import eu.vitamo.app.config.JWTConfig
 import eu.vitamo.app.features.user.model.UserAccount
 import eu.vitamo.app.features.user.repository.UserRepository
 import eu.vitamo.app.features.auth.repository.EmailVerificationChallengeRepository
+import eu.vitamo.app.features.user.entity.UserEntity
 import eu.vitamo.app.infrastructure.security.PasswordHashService
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -35,15 +37,17 @@ class AuthFlowTest {
     }
 
     @Test
-    fun verifyEmail_marksAccountVerifiedAndConsumesChallenge() {
+    fun verifyEmail_marksAccountVerifiedAndConsumesChallenge() = runTest {
         val now = Clock.System.now()
         val userId = Uuid.parse("123e4567-e89b-12d3-a456-426614174000")
+
         val userRepo = FakeUserRepository(
             user = userAccount(
                 id = userId,
                 emailVerifiedAt = null,
             ),
         )
+
         val challengeRepo = FakeChallengeRepository(
             challenge = emailChallenge(
                 id = Uuid.parse("123e4567-e89b-12d3-a456-426614174111"),
@@ -54,9 +58,19 @@ class AuthFlowTest {
                 expiresAt = now + kotlin.time.Duration.parse("15m"),
             ),
         )
-        val useCase = VerifyEmailUseCase(userRepo, challengeRepo, FixedTokenHashService())
 
-        val response = useCase.verify(VerifyEmailRequest(email = " ava@example.com ", code = "123456"))
+        val useCase = VerifyEmailUseCase(
+            userRepository = userRepo,
+            challengeRepository = challengeRepo,
+            tokenHashService = FixedTokenHashService(),
+        )
+
+        val response = useCase.verify(
+            VerifyEmailRequest(
+                email = " ava@example.com ",
+                code = "123456",
+            ),
+        )
 
         assertTrue(response.verified)
         assertEquals(1, challengeRepo.consumedCount)
@@ -64,7 +78,7 @@ class AuthFlowTest {
     }
 
     @Test
-    fun verifyEmail_incrementsAttemptsOnMismatch() {
+    fun verifyEmail_incrementsAttemptsOnMismatch() = runTest {
         val now = Clock.System.now()
         val userId = Uuid.parse("123e4567-e89b-12d3-a456-426614174222")
         val userRepo = FakeUserRepository(
@@ -94,7 +108,7 @@ class AuthFlowTest {
     }
 
     @Test
-    fun login_rejectsUnverifiedUser() {
+    fun login_rejectsUnverifiedUser() = runTest {
         val userRepo = FakeUserRepository(
             user = userAccount(
                 emailVerifiedAt = null,
@@ -184,14 +198,18 @@ class AuthFlowTest {
     ) : UserRepository {
         var savedUser: UserAccount? = user
 
-        override fun findByEmail(email: String): UserAccount? = savedUser?.takeIf { it.email == email }
-        override fun findById(id: Uuid): UserAccount? = savedUser?.takeIf { it.id == id }
+        override suspend fun findByEmail(email: String): UserAccount? = savedUser?.takeIf { it.email == email }
+        override suspend fun findByEmailAsEntity(email: String): UserEntity? {
+            throw NotImplementedError("Not needed for this test")
+        }
+
+        override suspend fun findById(id: Uuid): UserAccount? = savedUser?.takeIf { it.id == id }
         override fun deleteById(id: Uuid) {
             if (savedUser?.id == id) {
                 savedUser = null
             }
         }
-        override fun createUser(
+        override suspend fun createUser(
             email: String,
             displayName: String,
             hashedPassword: String,
@@ -222,6 +240,10 @@ class AuthFlowTest {
 
         override fun markEmailVerified(id: Uuid, emailVerifiedAt: Instant, updatedAt: Long) {
             savedUser = savedUser?.copy(emailVerifiedAt = emailVerifiedAt, updatedAt = updatedAt)
+        }
+
+        override fun updatePassword(userid: Uuid, hashedPassword: String) {
+            savedUser = savedUser?.takeIf { it.id == userid }?.copy(hashedPassword = hashedPassword)
         }
     }
 

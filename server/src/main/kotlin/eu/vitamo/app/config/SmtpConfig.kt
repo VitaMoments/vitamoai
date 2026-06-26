@@ -10,4 +10,6 @@ data class SmtpConfig(
     val sslEnabled: Boolean,
     val startTlsEnabled: Boolean,
     val authEnabled: Boolean,
+    val resetPasswordLinkBaseUrl: String,
+    val resetPasswordExpirationMinutes: Int
 )

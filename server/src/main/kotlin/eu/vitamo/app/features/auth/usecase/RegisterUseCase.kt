@@ -6,11 +6,12 @@ import eu.vitamo.app.features.auth.model.AuthException
 import eu.vitamo.app.features.auth.model.EmailVerificationPurpose
 import eu.vitamo.app.features.auth.repository.EmailVerificationChallengeRepository
 import eu.vitamo.app.features.auth.service.EmailVerificationCodeService
-import eu.vitamo.app.features.auth.service.EmailVerificationMailSender
+import eu.vitamo.app.features.auth.service.AuthMailSender
 import eu.vitamo.app.features.auth.service.TokenHashService
 import eu.vitamo.app.infrastructure.security.PasswordHashService
 import eu.vitamo.app.features.user.repository.UserRepository
-import io.ktor.http.HttpStatusCode
+import eu.vitamo.app.validation.EmailValidator
+import eu.vitamo.app.validation.PasswordValidator
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 
@@ -18,14 +19,24 @@ class RegisterUseCase(
     private val userRepository: UserRepository,
     private val challengeRepository: EmailVerificationChallengeRepository,
     private val codeService: EmailVerificationCodeService,
-    private val mailSender: EmailVerificationMailSender,
+    private val mailSender: AuthMailSender,
     private val tokenHashService: TokenHashService,
     private val passwordHashService: PasswordHashService,
 ) {
     suspend fun register(request: RegisterRequest): RegisterResponse {
-        val email = normalizeEmail(request.email)
+        val email = EmailValidator.normalizeOrThrow(request.email) {
+            throw AuthException.BadRequest(
+                message = "Email is invalid.",
+            )
+        }
         if (userRepository.findByEmail(email) != null) {
             throw AuthException.EmailAlreadyExists()
+        }
+
+        PasswordValidator.validateOrThrow(request.password) {
+            throw AuthException.BadRequest(
+                message = "Password is invalid: $it",
+            )
         }
 
         val now = Clock.System.now()
@@ -69,14 +80,6 @@ class RegisterUseCase(
             message = "Registration successful. Please verify your email.",
             emailVerificationRequired = true,
         )
-    }
-
-    private fun normalizeEmail(email: String): String {
-        return email.trim().lowercase().ifBlank {
-            throw AuthException.BadRequest(
-                message = "Email is required.",
-            )
-        }
     }
 
     private companion object {

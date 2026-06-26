@@ -16,7 +16,7 @@ class VerifyEmailUseCase(
     private val challengeRepository: EmailVerificationChallengeRepository,
     private val tokenHashService: TokenHashService,
 ) {
-    fun verify(request: VerifyEmailRequest): VerifyEmailResponse {
+    suspend fun verify(request: VerifyEmailRequest): VerifyEmailResponse {
         val email = normalizeEmail(request.email)
         val now = Clock.System.now()
         val user = userRepository.findByEmail(email)

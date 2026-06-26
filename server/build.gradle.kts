@@ -42,8 +42,9 @@ dependencies {
     implementation(libs.hikari)
     implementation(libs.jbcrypt)
 
+    implementation(libs.koin.ktor)
+
     testImplementation(libs.ktor.serverTestHost)
     testImplementation(libs.kotlin.testJunit)
-
-    implementation(libs.koin.ktor)
+    testImplementation(libs.kotlinx.coroutines.test)
 }

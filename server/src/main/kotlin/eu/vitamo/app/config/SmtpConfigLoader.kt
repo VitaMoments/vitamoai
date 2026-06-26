@@ -12,6 +12,8 @@ object SmtpConfigLoader {
     private const val SMTP_SSL_ENABLED = "SMTP_SSL_ENABLED"
     private const val SMTP_STARTTLS_ENABLED = "SMTP_STARTTLS_ENABLED"
     private const val SMTP_AUTH_ENABLED = "SMTP_AUTH_ENABLED"
+    private const val RESET_PASSWORD_LINK_BASE_URL = "RESET_PASSWORD_LINK_BASE_URL"
+    private const val RESET_PASSWORD_EXPIRATION_MINUTES = "RESET_PASSWORD_EXPIRATION_MINUTES"
 
     fun loadOrThrow(
         environment: Map<String, String> = System.getenv(),
@@ -58,6 +60,15 @@ object SmtpConfigLoader {
             defaultValue = "true",
         ).toBooleanStrictOrNull() ?: error("Invalid value for $SMTP_AUTH_ENABLED")
 
+        val resetPasswordLinkBaseUrl = readRequired(RESET_PASSWORD_LINK_BASE_URL, valueReader)
+
+        val resetPasswordExpirationMinutes = readOptional(
+            key = RESET_PASSWORD_EXPIRATION_MINUTES,
+            valueReader = valueReader,
+            defaultValue = "15",
+        ).toIntOrNull() ?: error("Invalid value for $RESET_PASSWORD_EXPIRATION_MINUTES")
+
+
         return SmtpConfig(
             host = host,
             port = port,
@@ -68,6 +79,8 @@ object SmtpConfigLoader {
             sslEnabled = sslEnabled,
             startTlsEnabled = startTlsEnabled,
             authEnabled = authEnabled,
+            resetPasswordLinkBaseUrl = resetPasswordLinkBaseUrl,
+            resetPasswordExpirationMinutes = resetPasswordExpirationMinutes,
         )
     }
 

@@ -1,11 +1,13 @@
 package eu.vitamo.app.di
 
+
 import eu.vitamo.app.Greeting
 import eu.vitamo.app.auth.api.AuthApi
 import eu.vitamo.app.auth.api.AuthApiConfig
 import eu.vitamo.app.auth.api.KtorAuthApi
 import eu.vitamo.app.auth.repository.AuthRepository
 import eu.vitamo.app.auth.repository.DefaultAuthRepository
+import eu.vitamo.app.di.modules.uiKoinModules
 import eu.vitamo.app.network.AuthCookieStorage
 import eu.vitamo.app.network.ClearableCookieStorage
 import eu.vitamo.app.network.createAppHttpClient
@@ -33,7 +35,10 @@ fun initKoin() {
     }
 
     startKoin {
-        modules(sharedAppModule, platformModule())
+        modules(
+            sharedAppModule,
+            platformModule(),
+            *uiKoinModules.toTypedArray())
     }
 
     koinStarted = true

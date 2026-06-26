@@ -7,9 +7,10 @@ import eu.vitamo.app.features.auth.model.EmailVerificationChallenge
 import eu.vitamo.app.features.auth.model.EmailVerificationPurpose
 import eu.vitamo.app.features.auth.repository.EmailVerificationChallengeRepository
 import eu.vitamo.app.features.auth.service.EmailVerificationCodeService
-import eu.vitamo.app.features.auth.service.EmailVerificationMailSender
+import eu.vitamo.app.features.auth.service.AuthMailSender
 import eu.vitamo.app.features.auth.service.TokenHashService
 import eu.vitamo.app.features.auth.usecase.ResendEmailVerificationUseCase
+import eu.vitamo.app.features.user.entity.UserEntity
 import eu.vitamo.app.features.user.model.UserAccount
 import eu.vitamo.app.features.user.repository.UserRepository
 import eu.vitamo.app.mail.MailService
@@ -121,7 +122,7 @@ class ResendEmailVerificationUseCaseTest {
         challengeRepo: FakeChallengeRepository,
         mailService: RecordingMailService,
     ): BuiltUseCase {
-        val sender = EmailVerificationMailSender(
+        val sender = AuthMailSender(
             mailService = mailService,
             templateRenderer = StubTemplateRenderer(),
             smtpConfig = SmtpConfig(
@@ -134,6 +135,8 @@ class ResendEmailVerificationUseCaseTest {
                 sslEnabled = true,
                 startTlsEnabled = false,
                 authEnabled = true,
+                resetPasswordLinkBaseUrl = "https://example.com/reset-password",
+                resetPasswordExpirationMinutes = 15
             ),
         )
         val useCase = ResendEmailVerificationUseCase(
@@ -228,10 +231,14 @@ class ResendEmailVerificationUseCaseTest {
     private class FakeUserRepository(
         private val user: UserAccount? = null,
     ) : UserRepository {
-        override fun findByEmail(email: String): UserAccount? = user?.takeIf { it.email == email.trim().lowercase() }
-        override fun findById(id: Uuid): UserAccount? = user?.takeIf { it.id == id }
+        override suspend fun findByEmail(email: String): UserAccount? = user?.takeIf { it.email == email.trim().lowercase() }
+        override suspend fun findByEmailAsEntity(email: String): UserEntity? {
+            throw NotImplementedError("Not used in this test")
+        }
+
+        override suspend fun findById(id: Uuid): UserAccount? = user?.takeIf { it.id == id }
         override fun deleteById(id: Uuid) = Unit
-        override fun createUser(
+        override suspend fun createUser(
             email: String,
             displayName: String,
             hashedPassword: String,
@@ -242,6 +249,9 @@ class ResendEmailVerificationUseCaseTest {
             now: Long,
         ): UserAccount = error("not used")
         override fun markEmailVerified(id: Uuid, emailVerifiedAt: Instant, updatedAt: Long) = Unit
+        override fun updatePassword(userid: Uuid, hashedPassword: String) {
+            throw NotImplementedError("Not used in this test")
+        }
     }
 
     private class FakeChallengeRepository(

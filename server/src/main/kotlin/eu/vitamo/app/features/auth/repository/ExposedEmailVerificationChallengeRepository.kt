@@ -102,7 +102,7 @@ class ExposedEmailVerificationChallengeRepository : EmailVerificationChallengeRe
     override fun incrementAttempts(id: Uuid, attemptedAt: Instant) {
         transaction {
             EmailVerificationChallengeEntity.findById(id)?.let {
-                it.attempts = it.attempts + 1
+                it.attempts += 1
                 it.lastAttemptAt = attemptedAt
             }
         }

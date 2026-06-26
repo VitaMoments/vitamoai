@@ -15,7 +15,7 @@ class LoginUseCase(
     private val jwtService: JWTService,
     private val refreshTokenService: RefreshTokenService,
 ) {
-    fun login(request: LoginRequest): LoginSession {
+    suspend fun login(request: LoginRequest): LoginSession {
         val email = normalizeEmail(request.email)
         val user = userRepository.findByEmail(email)
             ?: throw AuthException.InvalidCredentials()

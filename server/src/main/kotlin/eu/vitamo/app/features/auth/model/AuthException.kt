@@ -1,5 +1,14 @@
 package eu.vitamo.app.features.auth.model
 
+import eu.vitamo.app.api.contracts.auth.AuthErrorCode.EMAIL_ALREADY_EXISTS_CODE
+import eu.vitamo.app.api.contracts.auth.AuthErrorCode.EMAIL_NOT_VERIFIED_CODE
+import eu.vitamo.app.api.contracts.auth.AuthErrorCode.EMAIL_VERIFICATION_FAILED_CODE
+import eu.vitamo.app.api.contracts.auth.AuthErrorCode.FORGOT_PASSWORD_FAILED_CODE
+import eu.vitamo.app.api.contracts.auth.AuthErrorCode.INVALID_CREDENTIALS_CODE
+import eu.vitamo.app.api.contracts.auth.AuthErrorCode.INVALID_PASSWORD_RESET_CODE
+import eu.vitamo.app.api.contracts.auth.AuthErrorCode.INVALID_VERIFICATION_CODE
+import eu.vitamo.app.api.contracts.auth.AuthErrorCode.VERIFICATION_ATTEMPTS_EXCEEDED_CODE
+import eu.vitamo.app.api.contracts.common.BaseErrorCode.BAD_REQUEST_CODE
 import io.ktor.http.HttpStatusCode
 
 sealed class AuthException(
@@ -56,6 +65,22 @@ sealed class AuthException(
         status = HttpStatusCode.Unauthorized,
     )
 
+    data class InvalidPasswordResetToken(
+        override val message: String = "Invalid password reset token.",
+    ) : AuthException(
+        code = INVALID_PASSWORD_RESET_CODE,
+        message = message,
+        status = HttpStatusCode.Unauthorized,
+    )
+
+    data class ForgotPasswordFailed(
+        override val message: String = "Failed to send password reset email.",
+    ) : AuthException(
+        code = FORGOT_PASSWORD_FAILED_CODE,
+        message = message,
+        status = HttpStatusCode.InternalServerError,
+    )
+
     data class BadRequest(
         override val code: String = BAD_REQUEST_CODE,
         override val message: String = "Bad request.",
@@ -64,15 +89,4 @@ sealed class AuthException(
         message = message,
         status = HttpStatusCode.BadRequest,
     )
-
-    companion object {
-        const val BAD_REQUEST_CODE = "BAD_REQUEST"
-        const val INVALID_EMAIL_CODE = "INVALID_EMAIL"
-        const val INVALID_CREDENTIALS_CODE = "INVALID_CREDENTIALS"
-        const val EMAIL_NOT_VERIFIED_CODE = "EMAIL_NOT_VERIFIED"
-        const val EMAIL_ALREADY_EXISTS_CODE = "EMAIL_ALREADY_EXISTS"
-        const val VERIFICATION_ATTEMPTS_EXCEEDED_CODE = "VERIFICATION_ATTEMPTS_EXCEEDED"
-        const val EMAIL_VERIFICATION_FAILED_CODE = "EMAIL_VERIFICATION_EMAIL_FAILED"
-        const val INVALID_VERIFICATION_CODE = "INVALID_VERIFICATION_CODE"
-    }
 }

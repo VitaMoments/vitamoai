@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Allow HTTP for development servers -->
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- AUTO-GENERATED-DEV-IP-START -->
+        <domain includeSubdomains="true">192.168.178.93</domain>
+        <!-- AUTO-GENERATED-DEV-IP-END -->
+    </domain-config>
+
+    <!-- Production and other domains require HTTPS -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">vitamo.eu</domain>
+        <domain includeSubdomains="true">api-test.vitamo.eu</domain>
+        <domain includeSubdomains="true">api-acc.vitamo.eu</domain>
+        <domain includeSubdomains="true">api-demo.vitamo.eu</domain>
+        <domain includeSubdomains="true">vita-app-production-2406.up.railway.app</domain>
+    </domain-config>
+</network-security-config>
+

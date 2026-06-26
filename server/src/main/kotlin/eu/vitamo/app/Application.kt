@@ -25,7 +25,9 @@ fun Application.module() {
     configureSecurity()
 
     routing {
-        authRoutes()
+        route("/api") {
+            authRoutes()
+        }
         get("/") {
             call.respondText(sayHello("Ktor"))
         }

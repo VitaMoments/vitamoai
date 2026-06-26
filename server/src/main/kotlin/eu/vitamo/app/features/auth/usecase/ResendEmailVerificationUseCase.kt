@@ -6,10 +6,9 @@ import eu.vitamo.app.features.auth.model.AuthException
 import eu.vitamo.app.features.auth.model.EmailVerificationPurpose
 import eu.vitamo.app.features.auth.repository.EmailVerificationChallengeRepository
 import eu.vitamo.app.features.auth.service.EmailVerificationCodeService
-import eu.vitamo.app.features.auth.service.EmailVerificationMailSender
+import eu.vitamo.app.features.auth.service.AuthMailSender
 import eu.vitamo.app.features.auth.service.TokenHashService
 import eu.vitamo.app.features.user.repository.UserRepository
-import io.ktor.http.HttpStatusCode
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -18,7 +17,7 @@ class ResendEmailVerificationUseCase(
     private val userRepository: UserRepository,
     private val challengeRepository: EmailVerificationChallengeRepository,
     private val codeService: EmailVerificationCodeService,
-    private val mailSender: EmailVerificationMailSender,
+    private val mailSender: AuthMailSender,
     private val tokenHashService: TokenHashService,
 ) {
     suspend fun resend(request: ResendEmailVerificationRequest): ResendEmailVerificationResponse {
@@ -73,7 +72,6 @@ class ResendEmailVerificationUseCase(
         val normalized = email.trim().lowercase()
         if (normalized.isBlank() || !EMAIL_REGEX.matches(normalized)) {
             throw AuthException.BadRequest(
-                code = AuthException.INVALID_EMAIL_CODE,
                 message = "Email is invalid."
             )
         }
