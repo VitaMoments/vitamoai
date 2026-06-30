@@ -14,7 +14,7 @@ body:
     attributes:
       label: Feature summary
       description: What should be added?
-      placeholder:
+      placeholder: |
         Example: Users should be able to create a group with a unique invite code.
     validations:
       required: true
@@ -24,7 +24,7 @@ body:
     attributes:
       label: User value
       description: What value does this feature provide?
-      placeholder:
+      placeholder: |
         Example: Users can easily invite others and manage a shared group.
     validations:
       required: true

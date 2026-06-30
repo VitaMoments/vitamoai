@@ -14,7 +14,7 @@ body:
     attributes:
       label: Current behavior
       description: What is currently happening?
-      placeholder:
+      placeholder: |
         Example: The user receives a generic error after entering an expired verification code.
     validations:
       required: true
@@ -24,7 +24,7 @@ body:
     attributes:
       label: Expected behavior
       description: What should happen instead?
-      placeholder:
+      placeholder: |
         Example: The user should see that the code has expired and can request a new one.
     validations:
       required: true
@@ -102,6 +102,7 @@ body:
     attributes:
       label: Possible solution
       description: Optional idea for fixing the bug.
-      placeholder: Example: Return a specific EXPIRED_VERIFICATION_CODE error from the backend.
+      placeholder: |
+        Example: Return a specific EXPIRED_VERIFICATION_CODE error from the backend.
     validations:
       required: false

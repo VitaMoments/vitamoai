@@ -14,7 +14,7 @@ body:
     attributes:
       label: Task description
       description: What needs to be done?
-      placeholder:
+      placeholder: |
         Example: Create the registration endpoint and connect it to the auth repository.
     validations:
       required: true

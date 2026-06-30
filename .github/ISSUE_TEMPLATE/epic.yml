@@ -14,7 +14,7 @@ body:
     attributes:
       label: Goal
       description: What is the main goal of this epic?
-      placeholder:
+      placeholder: |
         Example: Users should be able to register, log in, verify their email, and recover their password.
     validations:
       required: true
@@ -24,7 +24,7 @@ body:
     attributes:
       label: Problem or opportunity
       description: What problem does this epic solve?
-      placeholder:
+      placeholder: |
         Example: Users currently cannot securely access their personal account.
     validations:
       required: true
