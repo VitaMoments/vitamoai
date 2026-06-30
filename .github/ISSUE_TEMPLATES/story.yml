@@ -1,0 +1,100 @@
+name: User Story
+description: A user-focused requirement that describes a specific need, action, or value from the user's perspective.
+title: "[Story]: "
+labels: ["type: story"]
+type: Story
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for user-facing functionality that delivers clear value.
+
+  - type: textarea
+    id: user-story
+    attributes:
+      label: User story
+      description: Describe the story from the user's perspective.
+      placeholder: As a user, I want to ..., so that ...
+      value: |
+        As a [type of user], I want to [action], so that [value].
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Why is this story needed?
+      placeholder: Explain the background, user need, or product reason.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this story?
+      options:
+        - Critical
+        - High
+        - Medium
+        - Low
+    validations:
+      required: true
+
+  - type: dropdown
+    id: effort
+    attributes:
+      label: Effort
+      description: Rough implementation size.
+      options:
+        - XS
+        - S
+        - M
+        - L
+        - XL
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance criteria
+      description: What must be true for this story to be done?
+      placeholder: |
+        - [ ] User can ...
+        - [ ] User sees ...
+        - [ ] System validates ...
+        - [ ] Error states are handled
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical-notes
+    attributes:
+      label: Technical notes
+      description: Optional technical details, endpoints, DTOs, screens, or dependencies.
+      placeholder: |
+        - Endpoint:
+        - Request:
+        - Response:
+        - Screen:
+        - ViewModel:
+        - Validation:
+    validations:
+      required: false
+
+  - type: textarea
+    id: definition-of-done
+    attributes:
+      label: Definition of Done
+      description: Checklist before closing this story.
+      value: |
+        - [ ] Implementation is complete
+        - [ ] Validation is added
+        - [ ] Error handling is added
+        - [ ] UI states are handled
+        - [ ] Tested manually or automatically
+        - [ ] Pull request is reviewed
+    validations:
+      required: true

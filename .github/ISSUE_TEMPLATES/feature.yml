@@ -1,0 +1,80 @@
+name: Feature
+description: A new piece of functionality that adds value to the product or improves the user experience.
+title: "[Feature]: "
+labels: ["type: feature"]
+type: Feature
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for a new feature that is smaller than an epic or not yet split into stories.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Feature summary
+      description: What should be added?
+      placeholder:
+        Example: Users should be able to create a group with a unique invite code.
+    validations:
+      required: true
+
+  - type: textarea
+    id: value
+    attributes:
+      label: User value
+      description: What value does this feature provide?
+      placeholder:
+        Example: Users can easily invite others and manage a shared group.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - Critical
+        - High
+        - Medium
+        - Low
+    validations:
+      required: true
+
+  - type: dropdown
+    id: effort
+    attributes:
+      label: Effort
+      options:
+        - XS
+        - S
+        - M
+        - L
+        - XL
+    validations:
+      required: true
+
+  - type: textarea
+    id: requirements
+    attributes:
+      label: Requirements
+      description: What should the feature support?
+      placeholder: |
+        - [ ] User can ...
+        - [ ] System should ...
+        - [ ] Feature should handle ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance criteria
+      description: When is this feature complete?
+      placeholder: |
+        - [ ] Main flow works
+        - [ ] Edge cases are handled
+        - [ ] User receives clear feedback
+        - [ ] Feature is tested
+    validations:
+      required: true

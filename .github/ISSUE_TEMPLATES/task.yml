@@ -1,0 +1,82 @@
+name: Task
+description: A technical or implementation-focused piece of work needed to complete a story or feature.
+title: "[Task]: "
+labels: ["type: task"]
+type: Task
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for technical implementation work.
+
+  - type: textarea
+    id: task-description
+    attributes:
+      label: Task description
+      description: What needs to be done?
+      placeholder:
+        Example: Create the registration endpoint and connect it to the auth repository.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - Critical
+        - High
+        - Medium
+        - Low
+    validations:
+      required: true
+
+  - type: dropdown
+    id: effort
+    attributes:
+      label: Effort
+      options:
+        - XS
+        - S
+        - M
+        - L
+        - XL
+    validations:
+      required: true
+
+  - type: textarea
+    id: implementation-notes
+    attributes:
+      label: Implementation notes
+      description: Add technical details, files, classes, endpoints, or dependencies.
+      placeholder: |
+        - Class:
+        - Function:
+        - Endpoint:
+        - Database:
+        - Dependencies:
+    validations:
+      required: false
+
+  - type: textarea
+    id: checklist
+    attributes:
+      label: Checklist
+      description: What needs to be completed?
+      placeholder: |
+        - [ ] Create ...
+        - [ ] Update ...
+        - [ ] Test ...
+        - [ ] Review ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: related-work
+    attributes:
+      label: Related work
+      description: Link related epic, story, pull request, or documentation.
+      placeholder: |
+        Related to #
+    validations:
+      required: false

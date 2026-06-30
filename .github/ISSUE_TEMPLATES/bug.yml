@@ -1,0 +1,107 @@
+name: Bug Report
+description: A defect, error, or unexpected behavior that needs to be fixed.
+title: "[Bug]: "
+labels: ["type: bug"]
+type: Bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for defects, crashes, broken flows, or unexpected behavior.
+
+  - type: textarea
+    id: current-behavior
+    attributes:
+      label: Current behavior
+      description: What is currently happening?
+      placeholder:
+        Example: The user receives a generic error after entering an expired verification code.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior
+      description: What should happen instead?
+      placeholder:
+        Example: The user should see that the code has expired and can request a new one.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to reproduce
+      description: How can this bug be reproduced?
+      placeholder: |
+        1. Go to ...
+        2. Enter ...
+        3. Click ...
+        4. See error ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How urgently should this be fixed?
+      options:
+        - Critical
+        - High
+        - Medium
+        - Low
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: How much does this impact the product?
+      options:
+        - Blocker
+        - Major
+        - Minor
+        - Trivial
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Where did this happen?
+      placeholder: |
+        - Platform: Android / iOS / Web / Backend
+        - Device:
+        - OS version:
+        - App version:
+        - Browser:
+      value: |
+        - Platform:
+        - Device:
+        - OS version:
+        - App version:
+        - Browser:
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or error output
+      description: Paste relevant logs, stack traces, or error responses.
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: possible-solution
+    attributes:
+      label: Possible solution
+      description: Optional idea for fixing the bug.
+      placeholder: Example: Return a specific EXPIRED_VERIFICATION_CODE error from the backend.
+    validations:
+      required: false
