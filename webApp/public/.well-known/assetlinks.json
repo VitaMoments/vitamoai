@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "eu.vitamo.app",
+      "sha256_cert_fingerprints": [
+        "97:71:83:54:56:79:F5:3A:70:71:32:1C:95:9A:7E:42:CF:9F:CA:77:5E:A8:C4:49:0D:30:DE:52:1D:5C:F3:29"
+      ]
+    }
+  }
+]
