@@ -1,0 +1,17 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": [
+          "TEAMID.eu.vitamo.app" <-- Replace TEAMID with your Apple Developer Team ID and eu.vitamo.app with your app's bundle identifier
+        ],
+        "components": [
+          {
+            "/": "/auth/reset-password",
+            "comment": "Password reset link"
+          }
+        ]
+      }
+    ]
+  }
+}

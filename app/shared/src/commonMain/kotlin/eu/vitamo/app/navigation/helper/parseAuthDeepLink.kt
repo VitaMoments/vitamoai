@@ -4,7 +4,7 @@ import eu.vitamo.app.navigation.AuthDestination
 
 fun parseAuthDeepLink(url: String?): AuthDestination? {
     if (url.isNullOrBlank()) return null
-    if (!url.startsWith("vitamo://auth/reset-password")) {
+    if (!url.startsWith("https://vitamo.eu/auth/reset-password")) {
         return null
     }
     val token = url

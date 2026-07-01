@@ -13,6 +13,8 @@ val appNavSavedStateConfiguration = SavedStateConfiguration {
             subclass(AuthDestination.Login::class, AuthDestination.Login.serializer())
             subclass(AuthDestination.Register::class, AuthDestination.Register.serializer())
             subclass(AuthDestination.VerifyEmailAddress::class, AuthDestination.VerifyEmailAddress.serializer())
+            subclass(AuthDestination.ForgotPassword::class, AuthDestination.ForgotPassword.serializer())
+            subclass(AuthDestination.ResetPassword::class, AuthDestination.ResetPassword.serializer())
         }
     }
 }
