@@ -3,6 +3,9 @@ package eu.vitamo.app.features.auth.repository
 import eu.vitamo.app.database.helpers.dbQuery
 import eu.vitamo.app.features.auth.entity.EmailVerificationChallengeEntity
 import eu.vitamo.app.features.auth.entity.PasswordResetTokenEntity
+import eu.vitamo.app.features.auth.entity.toRecord
+import eu.vitamo.app.features.auth.model.AuthException
+import eu.vitamo.app.features.auth.model.PasswordResetTokenRecord
 import eu.vitamo.app.features.auth.table.PasswordResetTokensTable
 import eu.vitamo.app.features.user.entity.UserEntity
 import org.jetbrains.exposed.v1.core.SortOrder
@@ -16,36 +19,40 @@ import kotlin.uuid.Uuid
 class ExposedPasswordResetTokenRepository : PasswordResetTokenRepository {
 
     override suspend fun create(
-        user: UserEntity,
+        userId: Uuid,
         tokenHash: String,
         createdAt: Instant,
         expiresAt: Instant,
-    ): PasswordResetTokenEntity = dbQuery {
+    ): PasswordResetTokenRecord = dbQuery {
+        val userEntity = UserEntity.findById(userId)
+            ?: throw AuthException.InvalidPasswordResetToken()
+
         PasswordResetTokenEntity.new {
-            this.user = user
+            this.user = userEntity
             this.tokenHash = tokenHash
             this.createdAt = createdAt
             this.expiresAt = expiresAt
             this.consumedAt = null
             this.attempts = 0
             this.lastAttemptAt = null
-        }
+        }.toRecord()
     }
 
     override suspend fun findByTokenHash(
         tokenHash: String,
-    ): PasswordResetTokenEntity? = dbQuery {
+    ): PasswordResetTokenRecord? = dbQuery {
         PasswordResetTokenEntity
             .find {
                 PasswordResetTokensTable.tokenHash eq tokenHash
             }
             .limit(1)
             .singleOrNull()
+            ?.toRecord()
     }
 
     override suspend fun findLatestByUserId(
         userId: Uuid,
-    ): PasswordResetTokenEntity? = dbQuery {
+    ): PasswordResetTokenRecord? = dbQuery {
         PasswordResetTokenEntity
             .find {
                 PasswordResetTokensTable.user eq userId
@@ -53,6 +60,7 @@ class ExposedPasswordResetTokenRepository : PasswordResetTokenRepository {
             .orderBy(PasswordResetTokensTable.createdAt to SortOrder.DESC)
             .limit(1)
             .singleOrNull()
+            ?.toRecord()
     }
 
     override suspend fun consumeIfActive(

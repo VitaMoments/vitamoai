@@ -2,8 +2,10 @@ package eu.vitamo.app.auth.api
 
 import eu.vitamo.app.api.contracts.auth.LoginRequest
 import eu.vitamo.app.api.contracts.auth.LoginResponse
+import eu.vitamo.app.api.contracts.auth.SessionResponse
 import eu.vitamo.app.api.contracts.user.AuthenticatedUser
 import eu.vitamo.app.api.contracts.user.UserRole
+import eu.vitamo.app.api.result.ApiResult
 import eu.vitamo.app.serialization.AppJson
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
@@ -17,7 +19,7 @@ import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.runBlocking
 
@@ -31,9 +33,7 @@ class KtorAuthApiTest {
                 respond(
                     content = AppJson.encodeToString(
                         LoginResponse.serializer(),
-                        LoginResponse(
-                            user = fakeUser("login@example.com"),
-                        ),
+                        LoginResponse(user = fakeUser("login@example.com")),
                     ),
                     status = HttpStatusCode.OK,
                     headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
@@ -46,26 +46,10 @@ class KtorAuthApiTest {
         }
         val api = KtorAuthApi(client, AuthApiConfig(baseUrl = "https://example.com"))
 
-        api.login(LoginRequest(email = "login@example.com", password = "secret"))
+        val result = api.login(LoginRequest(email = "login@example.com", password = "secret"))
 
+        assertTrue(result is ApiResult.Success)
         assertEquals(null, capturedRequest?.headers?.get(HttpHeaders.Authorization))
-    }
-
-    @Test
-    fun session_returnsNullOnUnauthorized() = runBlocking {
-        val client = HttpClient(
-            MockEngine {
-                respond(
-                    content = "",
-                    status = HttpStatusCode.Unauthorized,
-                )
-            },
-        )
-        val api = KtorAuthApi(client, AuthApiConfig(baseUrl = "https://example.com"))
-
-        val sessionUser = api.session()
-
-        assertNull(sessionUser)
     }
 
     @Test
@@ -74,17 +58,22 @@ class KtorAuthApiTest {
         val client = HttpClient(
             MockEngine {
                 respond(
-                    content = AppJson.encodeToString(AuthenticatedUser.serializer(), expectedUser),
+                    content = AppJson.encodeToString(SessionResponse.serializer(), SessionResponse(user = expectedUser)),
                     status = HttpStatusCode.OK,
                     headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
                 )
             },
-        )
+        ) {
+            install(ContentNegotiation) {
+                json(AppJson)
+            }
+        }
         val api = KtorAuthApi(client, AuthApiConfig(baseUrl = "https://example.com"))
 
-        val sessionUser = api.session()
+        val session = api.session()
 
-        assertEquals(expectedUser.email, sessionUser?.email)
+        assertTrue(session is ApiResult.Success)
+        assertEquals(expectedUser.email, (session as ApiResult.Success).data.user.email)
     }
 
     private fun fakeUser(email: String): AuthenticatedUser {

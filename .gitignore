@@ -16,7 +16,6 @@ captures
 !*.xcodeproj/project.xcworkspace/
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
-node_modules/
 
 .env
 
@@ -65,4 +64,14 @@ webApp/*.njsproj
 webApp/*.sln
 webApp/*.sw?
 
+# Universal
+Thumbs.db
+*.tmp
+*.swp
+.vscode/
+
+# Logs and env variants
+*.log
+.env*
+!.env
 

@@ -1,23 +1,20 @@
 package eu.vitamo.app.features.auth.repository
 
-import eu.vitamo.app.features.auth.entity.EmailVerificationChallengeEntity
-import eu.vitamo.app.features.auth.entity.PasswordResetTokenEntity
-import eu.vitamo.app.features.user.entity.UserEntity
-import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import eu.vitamo.app.features.auth.model.PasswordResetTokenRecord
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 interface PasswordResetTokenRepository {
     suspend fun create(
-        user: UserEntity,
+        userId: Uuid,
         tokenHash: String,
         createdAt: Instant,
         expiresAt: Instant,
-    ): PasswordResetTokenEntity
+    ): PasswordResetTokenRecord
 
-    suspend fun findByTokenHash(tokenHash: String): PasswordResetTokenEntity?
+    suspend fun findByTokenHash(tokenHash: String): PasswordResetTokenRecord?
 
-    suspend fun findLatestByUserId(userId: Uuid): PasswordResetTokenEntity?
+    suspend fun findLatestByUserId(userId: Uuid): PasswordResetTokenRecord?
 
     suspend fun consumeIfActive(
         tokenId: Uuid,

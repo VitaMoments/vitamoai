@@ -7,7 +7,6 @@ import kotlinx.coroutines.sync.withLock
 
 class ClearableCookieStorage : AuthCookieStorage {
     private data class StoredCookie(
-        val requestUrl: Url,
         val cookie: Cookie,
     )
 
@@ -21,7 +20,7 @@ class ClearableCookieStorage : AuthCookieStorage {
                     existing.cookie.domain == cookie.domain &&
                     existing.cookie.path == cookie.path
             }
-            cookies += StoredCookie(requestUrl, cookie)
+            cookies += StoredCookie(cookie)
         }
     }
 

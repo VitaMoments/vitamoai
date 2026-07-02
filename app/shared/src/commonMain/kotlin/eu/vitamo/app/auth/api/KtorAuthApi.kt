@@ -79,6 +79,12 @@ class KtorAuthApi(
         }
     }
 
+    override suspend fun refreshSession(): ApiResult<SessionResponse> {
+        return safeApiCall {
+            client.post("${config.baseUrl}/refresh")
+        }
+    }
+
     override suspend fun logout(): ApiResult<Unit> {
         return safeApiUnitCall {
             client.post("${config.baseUrl}/logout")
