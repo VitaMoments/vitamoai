@@ -1,0 +1,12 @@
+package eu.vitamo.app.api.contracts.feed
+
+object FeedErrorCode {
+    const val INVALID_CONTENT_CODE = "INVALID_CONTENT"
+    const val CONTENT_TOO_LARGE_CODE = "CONTENT_TOO_LARGE"
+    const val INVALID_PRIVACY_CODE = "INVALID_PRIVACY"
+    const val INVALID_CATEGORIES_CODE = "INVALID_CATEGORIES"
+    const val INVALID_MEDIA_ASSETS_CODE = "INVALID_MEDIA_ASSETS"
+    const val INVALID_PAGINATION_CODE = "INVALID_PAGINATION"
+    const val FORBIDDEN_CODE = "FORBIDDEN"
+    const val NOT_FOUND_CODE = "NOT_FOUND"
+}
