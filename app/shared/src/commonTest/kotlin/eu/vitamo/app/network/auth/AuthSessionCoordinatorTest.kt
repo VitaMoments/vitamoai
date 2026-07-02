@@ -2,8 +2,6 @@ package eu.vitamo.app.network.auth
 
 import eu.vitamo.app.api.contracts.auth.LoginResponse
 import eu.vitamo.app.api.contracts.auth.SessionResponse
-import eu.vitamo.app.api.contracts.user.AuthenticatedUser
-import eu.vitamo.app.api.contracts.user.UserRole
 import eu.vitamo.app.api.result.ApiError
 import eu.vitamo.app.api.result.ApiResult
 import eu.vitamo.app.auth.api.AuthApi
@@ -14,7 +12,6 @@ import io.ktor.http.Cookie
 import io.ktor.http.Url
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.uuid.Uuid
 import kotlinx.coroutines.runBlocking
 
 class AuthSessionCoordinatorTest {

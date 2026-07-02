@@ -1,7 +1,6 @@
 package eu.vitamo.app.features.auth.repository
 
 import eu.vitamo.app.features.auth.model.PasswordResetTokenRecord
-import eu.vitamo.app.features.user.entity.UserEntity
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 

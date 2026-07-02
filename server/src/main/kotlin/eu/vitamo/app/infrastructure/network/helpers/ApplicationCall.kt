@@ -1,6 +1,5 @@
 package eu.vitamo.app.infrastructure.network.helpers
 
-import eu.vitamo.app.api.contracts.auth.AuthErrorCode
 import eu.vitamo.app.config.JWTConfig
 import eu.vitamo.app.features.auth.model.AuthException
 import io.ktor.server.application.ApplicationCall
@@ -18,4 +17,4 @@ val ApplicationCall.userId: Uuid?
             runCatching {  Uuid.parse(it) }.getOrNull()
         }
 
-suspend fun ApplicationCall.requireUserId() : Uuid = userId ?: throw AuthException.InvalidAccessTokenException()
+fun ApplicationCall.requireUserId() : Uuid = userId ?: throw AuthException.InvalidAccessTokenException()
