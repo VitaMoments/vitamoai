@@ -13,12 +13,12 @@ val AppJson = Json {
     classDiscriminator = "type"
     ignoreUnknownKeys = true
     isLenient = true
+    coerceInputValues = true
     encodeDefaults = true
     serializersModule = SerializersModule {
         contextual(Uuid::class, UuidSerializer)
         contextual(Instant::class, InstantSerializer)
     }
 }
-
 
 

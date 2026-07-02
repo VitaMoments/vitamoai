@@ -1,7 +1,7 @@
 package eu.vitamo.app.features.auth.usecase
 
-import eu.vitamo.app.api.contracts.auth.ForgotPasswordResponse
 import eu.vitamo.app.api.contracts.auth.ResetPasswordRequest
+import eu.vitamo.app.api.contracts.auth.ResetPasswordResponse
 import eu.vitamo.app.database.helpers.kotlinUuid
 import eu.vitamo.app.features.auth.model.AuthException
 import eu.vitamo.app.features.auth.repository.PasswordResetTokenRepository
@@ -18,7 +18,7 @@ class ResetPasswordUseCase(
     val tokenService: PasswordResetTokenService,
     val passwordHashService: PasswordHashService
 ) {
-    suspend operator fun invoke(request: ResetPasswordRequest) : ForgotPasswordResponse {
+    suspend operator fun invoke(request: ResetPasswordRequest) : ResetPasswordResponse {
         if (request.token.isBlank()) {
             throw AuthException.InvalidPasswordResetToken()
         }
@@ -39,9 +39,9 @@ class ResetPasswordUseCase(
         val tokenHash = tokenService.hashToken(request.token)
         val resetToken = tokenRepository.findByTokenHash(tokenHash) ?: throw AuthException.InvalidPasswordResetToken()
 
-        if (resetToken.user.kotlinUuid != userEntity.kotlinUuid) {
+        if (resetToken.userId != userEntity.kotlinUuid) {
             tokenRepository.incrementAttempts(
-                tokenId = resetToken.id.value,
+                tokenId = resetToken.id,
                 attemptedAt = now,
             )
             throw AuthException.InvalidPasswordResetToken()
@@ -52,14 +52,14 @@ class ResetPasswordUseCase(
         }
         if (resetToken.expiresAt < now) {
             tokenRepository.consumeIfActive(
-                tokenId = resetToken.id.value,
+                tokenId = resetToken.id,
                 consumedAt = now,
             )
             throw AuthException.InvalidPasswordResetToken()
         }
 
         val consumed = tokenRepository.consumeIfActive(
-            tokenId = resetToken.id.value,
+            tokenId = resetToken.id,
             consumedAt = now,
         )
 
@@ -76,6 +76,9 @@ class ResetPasswordUseCase(
             consumedAt = now,
         )
 
-        return ForgotPasswordResponse()
+        return ResetPasswordResponse(
+            message = "Password has been reset successfully.",
+            passwordChanged = true
+        )
     }
 }

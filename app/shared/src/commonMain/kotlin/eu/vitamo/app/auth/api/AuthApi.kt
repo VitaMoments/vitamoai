@@ -13,7 +13,6 @@ import eu.vitamo.app.api.contracts.auth.ResetPasswordResponse
 import eu.vitamo.app.api.contracts.auth.SessionResponse
 import eu.vitamo.app.api.contracts.auth.VerifyEmailRequest
 import eu.vitamo.app.api.contracts.auth.VerifyEmailResponse
-import eu.vitamo.app.api.contracts.user.AuthenticatedUser
 import eu.vitamo.app.api.result.ApiResult
 
 interface AuthApi {
@@ -29,9 +28,10 @@ interface AuthApi {
 
     suspend fun session(): ApiResult<SessionResponse>
 
+    suspend fun refreshSession(): ApiResult<SessionResponse>
+
     suspend fun logout(): ApiResult<Unit>
 
     suspend fun forgotPassword(request: ForgotPasswordRequest): ApiResult<ForgotPasswordResponse>
     suspend fun resetPassword(request: ResetPasswordRequest): ApiResult<ResetPasswordResponse>
 }
-

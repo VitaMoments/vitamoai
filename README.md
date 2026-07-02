@@ -34,6 +34,20 @@ Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:
 - Server tests: `./gradlew :server:test`
 - iOS tests: `./gradlew :app:shared:iosSimulatorArm64Test`
 
+### Feed feature local secrets
+
+Feed implementation uses the existing server environment loading. Keep all secrets and
+connection details in local `.env` (never hardcode in source). Required variables:
+
+- `DATABASE_HOST`
+- `DATABASE_PORT`
+- `DATABASE_NAME`
+- `DATABASE_USER`
+- `DATABASE_PASSWORD`
+- `JWT_ISSUER`
+- `JWT_AUDIENCE`
+- `JWT_SECRET`
+
 ---
 
 Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…

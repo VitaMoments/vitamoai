@@ -3,6 +3,7 @@ package eu.vitamo.app.auth.repository
 import eu.vitamo.app.api.contracts.auth.ForgotPasswordRequest
 import eu.vitamo.app.api.contracts.auth.ForgotPasswordResponse
 import eu.vitamo.app.api.contracts.auth.LoginRequest
+import eu.vitamo.app.api.result.ApiResult
 import eu.vitamo.app.api.contracts.auth.RegisterRequest
 import eu.vitamo.app.api.contracts.auth.ResendEmailVerificationRequest
 import eu.vitamo.app.api.contracts.auth.ResetPasswordRequest
@@ -10,13 +11,14 @@ import eu.vitamo.app.api.contracts.auth.ResetPasswordResponse
 import eu.vitamo.app.api.contracts.auth.VerifyEmailRequest
 import eu.vitamo.app.api.contracts.user.AuthenticatedUser
 import eu.vitamo.app.auth.api.AuthApi
+import eu.vitamo.app.mapper.toRepositoryError
 import eu.vitamo.app.mapper.toRepositoryResult
-import eu.vitamo.app.network.AuthCookieStorage
+import eu.vitamo.app.network.auth.AuthSessionCoordinator
 import eu.vitamo.app.repository.RepositoryResult
 
 class DefaultAuthRepository(
     private val authApi: AuthApi,
-    private val cookieStorage: AuthCookieStorage,
+    private val authSessionCoordinator: AuthSessionCoordinator,
 ) : AuthRepository {
 
     override suspend fun register(
@@ -39,13 +41,22 @@ class DefaultAuthRepository(
         email: String,
         password: String,
     ): RepositoryResult<AuthenticatedUser> {
-        return authApi.login(
+        val result = authApi.login(
             LoginRequest(
                 email = email,
                 password = password,
             )
-        ).toRepositoryResult { response ->
-            response.user
+        )
+
+        return when (result) {
+            is ApiResult.Success -> {
+                authSessionCoordinator.markAuthenticated()
+                RepositoryResult.Success(result.data.user)
+            }
+
+            is ApiResult.Error -> {
+                RepositoryResult.Error(result.error.toRepositoryError())
+            }
         }
     }
 
@@ -82,10 +93,11 @@ class DefaultAuthRepository(
     }
 
     override suspend fun logout(): RepositoryResult<Unit> {
-        val result = authApi.logout()
-
-        cookieStorage.clearAuthCookies()
-
+        val result = try {
+            authApi.logout()
+        } finally {
+            authSessionCoordinator.signOut()
+        }
         return result.toRepositoryResult {
             Unit
         }

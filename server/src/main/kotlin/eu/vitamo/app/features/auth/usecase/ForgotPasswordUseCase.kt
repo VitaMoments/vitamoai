@@ -25,16 +25,16 @@ class ForgotPasswordUseCase(
                 message = "Email is invalid."
             )
         }
-        val user = userRepository.findByEmailAsEntity(email) ?: return ForgotPasswordResponse()
+        val user = userRepository.findByEmail(email) ?: return ForgotPasswordResponse()
 
         val now = kotlin.time.Clock.System.now()
-        val latestToken = tokenRepository.findLatestByUserId(user.kotlinUuid)
+        val latestToken = tokenRepository.findLatestByUserId(user.id)
         if (latestToken != null && latestToken.createdAt >= now - RESEND_COOLDOWN) {
             return ForgotPasswordResponse()
         }
         val hashedToken = tokenService.generateHashedToken()
         val token = tokenRepository.create(
-            user = user,
+            userId = user.id,
             tokenHash = hashedToken.second,
             createdAt = now,
             expiresAt = now + VERIFICATION_CODE_TTL,
@@ -48,7 +48,7 @@ class ForgotPasswordUseCase(
             )
         } catch (e: Exception) {
             tokenRepository.consumeIfActive(
-                tokenId = token.kotlinUuid,
+                tokenId = token.id,
                 consumedAt = now,
             )
             throw AuthException.ForgotPasswordFailed()
