@@ -76,4 +76,5 @@ Thumbs.db
 /.env.*
 /.env*
 
+.opencode*
 .opencode/*
