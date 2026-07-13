@@ -1,9 +1,9 @@
 package eu.vitamo.app.features.feed.model
 
 import eu.vitamo.app.api.contracts.feed.FeedCategory
-import eu.vitamo.app.api.contracts.feed.MediaAsset
-import eu.vitamo.app.api.contracts.feed.PrivacyStatus
-import eu.vitamo.app.api.contracts.feed.RichTextDocument
+import eu.vitamo.app.api.contracts.common.PrivacyStatus
+import eu.vitamo.app.api.contracts.common.RichTextDocument
+import eu.vitamo.app.api.contracts.media.MediaAsset
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 

@@ -40,16 +40,7 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-- [ ] **Boundary Integrity**: Planned file/module locations respect `core`, `app/shared`,
-      platform app modules, and `server` ownership rules.
-- [ ] **Shared Contract Canonicality**: Shared API contracts are defined in `core` and no
-      unjustified DTO duplication is introduced.
-- [ ] **SIMPLE Delivery Discipline**: Scope is minimal, existing structure is inspected
-      first, and change summary/verification plan is defined.
-- [ ] **Security-First Enforcement**: Server-side authz/authn, secret handling, safe
-      logging, and CORS constraints are explicitly addressed.
-- [ ] **Testable Incremental Quality**: User stories remain independently testable and test
-      approach is defined for shared and server logic.
+[Gates determined based on constitution file]
 
 ## Project Structure
 

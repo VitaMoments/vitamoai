@@ -13,10 +13,6 @@ description: "Task list template for feature implementation"
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
-**Constitution Alignment**: Tasks MUST include work items (when applicable) for module
-boundary validation, shared contract placement in `core`, server-side security enforcement,
-and story-level testability.
-
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: Can run in parallel (different files, no dependencies)
@@ -56,8 +52,6 @@ and story-level testability.
 - [ ] T001 Create project structure per implementation plan
 - [ ] T002 Initialize [language] project with [framework] dependencies
 - [ ] T003 [P] Configure linting and formatting tools
-- [ ] T003a Validate module boundary impact for planned files (`core`, `app/shared`,
-      platform app modules, `server`)
 
 ---
 
@@ -75,9 +69,6 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] T007 Create base models/entities that all stories depend on
 - [ ] T008 Configure error handling and logging infrastructure
 - [ ] T009 Setup environment configuration management
-- [ ] T009a Define shared API contracts in `core` (or document why feature does not add/alter
-      shared contracts)
-- [ ] T009b Add security hardening tasks for secrets, safe error handling, and CORS constraints
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -165,7 +156,6 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] TXXX Performance optimization across all stories
 - [ ] TXXX [P] Additional unit tests (if requested) in tests/unit/
 - [ ] TXXX Security hardening
-- [ ] TXXX Constitution compliance pass across changed files/templates
 - [ ] TXXX Run quickstart.md validation
 
 ---

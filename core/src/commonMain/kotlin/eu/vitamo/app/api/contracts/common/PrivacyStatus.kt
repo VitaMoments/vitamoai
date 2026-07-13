@@ -1,4 +1,4 @@
-package eu.vitamo.app.api.contracts.feed
+package eu.vitamo.app.api.contracts.common
 
 import kotlinx.serialization.Serializable
 

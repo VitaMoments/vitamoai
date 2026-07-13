@@ -1,25 +1,25 @@
 package eu.vitamo.app.features.feed.validation
 
+import eu.vitamo.app.api.contracts.common.RichTextDocument
 import eu.vitamo.app.features.feed.model.FeedException
 import eu.vitamo.app.api.contracts.feed.CreateFeedItemRequest
 import eu.vitamo.app.api.contracts.feed.UpdateFeedItemRequest
-import eu.vitamo.app.api.contracts.feed.RichTextDocument
 
 class FeedInputValidator {
     fun validateCreate(request: CreateFeedItemRequest) {
         validateContent(request.content)
         validateCategories(request.categories)
-        validateMediaAssets(request.mediaAssets)
+//        validateMediaAssets(request.mediaAssets)
     }
 
     fun validateUpdate(request: UpdateFeedItemRequest) {
         request.content?.let(::validateContent)
         request.categories?.let(::validateCategories)
-        request.mediaAssets?.let(::validateMediaAssets)
+//        request.mediaAssets?.let(::validateMediaAssets)
     }
 
     private fun validateContent(content: RichTextDocument) {
-        val type = content.type.trim().lowercase()
+        val type = content.type?.trim()?.lowercase()
         if (type !in setOf("markdown", "plaintext", "document", "html")) {
             throw FeedException.InvalidContent("Content type must be one of markdown, plaintext, document, html")
         }
@@ -47,14 +47,14 @@ class FeedInputValidator {
         }
     }
 
-    private fun validateMediaAssets(mediaAssets: List<eu.vitamo.app.api.contracts.feed.MediaAsset>) {
-        if (mediaAssets.distinctBy { it.id }.size != mediaAssets.size) {
-            throw FeedException.InvalidMediaAssets("Media assets contain duplicates")
-        }
-        mediaAssets.forEach { media ->
-            if (!(media.url.startsWith("http://") || media.url.startsWith("https://"))) {
-                throw FeedException.InvalidMediaAssets("Media asset URLs must use http/https")
-            }
-        }
-    }
+//    private fun validateMediaAssets(mediaAssets: List<eu.vitamo.app.api.contracts.feed.MediaAsset>) {
+//        if (mediaAssets.distinctBy { it.id }.size != mediaAssets.size) {
+//            throw FeedException.InvalidMediaAssets("Media assets contain duplicates")
+//        }
+//        mediaAssets.forEach { media ->
+//            if (!(media.url.startsWith("http://") || media.url.startsWith("https://"))) {
+//                throw FeedException.InvalidMediaAssets("Media asset URLs must use http/https")
+//            }
+//        }
+//    }
 }

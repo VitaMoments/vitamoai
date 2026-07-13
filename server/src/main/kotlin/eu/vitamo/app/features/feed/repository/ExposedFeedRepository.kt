@@ -2,8 +2,9 @@ package eu.vitamo.app.features.feed.repository
 
 import eu.vitamo.app.api.contracts.feed.CreateFeedItemRequest
 import eu.vitamo.app.api.contracts.feed.FeedCategory
-import eu.vitamo.app.api.contracts.feed.MediaAssetType
 import eu.vitamo.app.api.contracts.feed.UpdateFeedItemRequest
+import eu.vitamo.app.api.contracts.media.MediaAsset
+import eu.vitamo.app.api.contracts.media.MediaAssetContext
 import eu.vitamo.app.features.feed.entity.FeedItemCategoryEntity
 import eu.vitamo.app.features.feed.entity.FeedItemEntity
 import eu.vitamo.app.features.feed.entity.FeedItemMediaAssetEntity
@@ -32,7 +33,7 @@ class ExposedFeedRepository : FeedRepository {
         }
 
         replaceCategories(entity, request.categories)
-        replaceMediaAssets(entity, request.mediaAssets)
+        // replaceMediaAssets(entity, request.mediaAssets)
 
         entity.toRecord()
     }
@@ -79,7 +80,7 @@ class ExposedFeedRepository : FeedRepository {
         request.content?.let { entity.contentJson = AppJson.encodeToString(it) }
         request.privacy?.let { entity.privacy = it }
         request.categories?.let { replaceCategories(entity, it) }
-        request.mediaAssets?.let { replaceMediaAssets(entity, it) }
+        // request.mediaAssets?.let { replaceMediaAssets(entity, it) }
         entity.updatedAt = now
 
         entity.toRecord()
@@ -106,36 +107,36 @@ class ExposedFeedRepository : FeedRepository {
         }
     }
 
-    private fun replaceMediaAssets(entity: FeedItemEntity, mediaAssets: List<eu.vitamo.app.api.contracts.feed.MediaAsset>) {
-        FeedItemMediaAssetEntity.find { eu.vitamo.app.features.feed.table.FeedItemMediaAssetsTable.feedItem eq entity.id }
-            .forEach { it.delete() }
-        mediaAssets.distinctBy { it.id }.forEach { media ->
-            FeedItemMediaAssetEntity.new {
-                this.feedItem = entity
-                this.mediaAssetId = media.id
-                this.mediaAssetUrl = media.url
-                this.mediaAssetType = media.type.name
-                this.mediaAssetMetadata = media.metadata?.toString()
-            }
-        }
-    }
+//    private fun replaceMediaAssets(entity: FeedItemEntity, mediaAssets: List<eu.vitamo.app.api.contracts.media.MediaAsset>) {
+//        FeedItemMediaAssetEntity.find { eu.vitamo.app.features.feed.table.FeedItemMediaAssetsTable.feedItem eq entity.id }
+//            .forEach { it.delete() }
+//        mediaAssets.distinctBy { it.id }.forEach { media ->
+//            FeedItemMediaAssetEntity.new {
+//                this.feedItem = entity
+//                this.mediaAssetId = media.id
+//                this.mediaAssetUrl = media.url
+//                this.mediaAssetType = media.type.name
+//                this.mediaAssetMetadata = media.metadata?.toString()
+//            }
+//        }
+//    }
 
     private fun FeedItemEntity.categories(): List<FeedCategory> {
         return FeedItemCategoryEntity.find { eu.vitamo.app.features.feed.table.FeedItemCategoriesTable.feedItem eq id }
             .map { it.category }
     }
 
-    private fun FeedItemEntity.mediaAssets(): List<eu.vitamo.app.api.contracts.feed.MediaAsset> {
-        return FeedItemMediaAssetEntity.find { eu.vitamo.app.features.feed.table.FeedItemMediaAssetsTable.feedItem eq id }
-            .map {
-                eu.vitamo.app.api.contracts.feed.MediaAsset(
-                    id = it.mediaAssetId,
-                    url = it.mediaAssetUrl,
-                    type = MediaAssetType.valueOf(it.mediaAssetType),
-                    metadata = it.mediaAssetMetadata?.let(AppJson::parseToJsonElement),
-                )
-            }
-    }
+//    private fun FeedItemEntity.mediaAssets(): List<MediaAsset> {
+//        return FeedItemMediaAssetEntity.find { eu.vitamo.app.features.feed.table.FeedItemMediaAssetsTable.feedItem eq id }
+//            .map {
+//                MediaAssetContext(
+//
+//                    id = it.mediaAssetId,
+//                    url = it.mediaAssetUrl,
+//                    metadata = it.mediaAssetMetadata?.let(AppJson::parseToJsonElement),
+//                )
+//            }
+//    }
 
     private fun FeedItemEntity.toRecord(): FeedItemRecord {
         return FeedItemRecord(
@@ -144,7 +145,7 @@ class ExposedFeedRepository : FeedRepository {
             content = AppJson.decodeFromString(contentJson),
             privacy = privacy,
             categories = categories(),
-            mediaAssets = mediaAssets(),
+            mediaAssets = emptyList(),
             createdAt = createdAt,
             updatedAt = updatedAt,
             deletedAt = deletedAt,

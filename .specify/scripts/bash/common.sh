@@ -97,17 +97,26 @@ read_feature_json_feature_directory() {
     local fj="$repo_root/.specify/feature.json"
     [[ -f "$fj" ]] || { printf '%s' ''; return 0; }
 
+    # Try parsers in order (jq -> python3 -> grep/sed), falling through on
+    # failure. Selection is by *parse success*, not mere availability: on
+    # Windows `python3` commonly resolves to the Microsoft Store App Execution
+    # Alias stub, which passes `command -v` but fails at runtime (exit 49), so
+    # an availability-gated `elif` would pick python3, swallow its failure, and
+    # never reach the grep/sed fallback -- leaving feature.json unreadable even
+    # though it is valid (issue #3304).
     local _fd=''
     if command -v jq >/dev/null 2>&1; then
         if ! _fd=$(jq -r '.feature_directory // empty' "$fj" 2>/dev/null); then
             _fd=''
         fi
-    elif command -v python3 >/dev/null 2>&1; then
+    fi
+    if [[ -z "$_fd" ]] && command -v python3 >/dev/null 2>&1; then
         # Use Python so pretty-printed/multi-line JSON still parses correctly.
         if ! _fd=$(python3 -c "import json,sys; d=json.load(open(sys.argv[1])); v=d.get('feature_directory'); print(v if v else '')" "$fj" 2>/dev/null); then
             _fd=''
         fi
-    else
+    fi
+    if [[ -z "$_fd" ]]; then
         # Last-resort single-line grep/sed fallback. The `|| true` guards against
         # grep returning 1 (no match) aborting under `set -e` / `pipefail`.
         _fd=$( { grep -E '"feature_directory"[[:space:]]*:' "$fj" 2>/dev/null || true; } \
@@ -152,6 +161,15 @@ _persist_feature_json() {
 }
 
 get_feature_paths() {
+    # Read-only callers (e.g. check-prerequisites.sh --paths-only) pass
+    # --no-persist so pure path resolution never writes .specify/feature.json,
+    # which would dirty the working tree or overwrite a pinned value (issue #3025).
+    local no_persist=false
+    if [[ "${1:-}" == "--no-persist" ]]; then
+        no_persist=true
+        shift
+    fi
+
     # Split decl/assignment so a SPECIFY_INIT_DIR validation failure in
     # get_repo_root propagates as a hard error instead of being masked by `local`.
     local repo_root
@@ -168,8 +186,11 @@ get_feature_paths() {
         feature_dir="$SPECIFY_FEATURE_DIRECTORY"
         # Normalize relative paths to absolute under repo root
         [[ "$feature_dir" != /* ]] && feature_dir="$repo_root/$feature_dir"
-        # Persist to feature.json so future sessions without the env var still work
-        _persist_feature_json "$repo_root" "$SPECIFY_FEATURE_DIRECTORY"
+        # Persist to feature.json so future sessions without the env var still
+        # work — unless the caller opted out for read-only resolution (#3025).
+        if [[ "$no_persist" != true ]]; then
+            _persist_feature_json "$repo_root" "$SPECIFY_FEATURE_DIRECTORY"
+        fi
     elif [[ -f "$repo_root/.specify/feature.json" ]]; then
         local _fd
         _fd=$(read_feature_json_feature_directory "$repo_root")
@@ -184,6 +205,15 @@ get_feature_paths() {
     else
         echo "ERROR: Feature directory not found. Set SPECIFY_FEATURE_DIRECTORY or run the specify command to create .specify/feature.json." >&2
         return 1
+    fi
+
+    # When no branch context exists (no SPECIFY_FEATURE, feature resolved via
+    # SPECIFY_FEATURE_DIRECTORY or feature.json), fall back to the feature
+    # directory basename so CURRENT_BRANCH is a usable identifier rather than
+    # an empty, misleading value (issue #3026).
+    if [[ -z "$current_branch" ]]; then
+        local feature_dir_trimmed="${feature_dir%/}"
+        current_branch="${feature_dir_trimmed##*/}"
     fi
 
     # Use printf '%q' to safely quote values, preventing shell injection

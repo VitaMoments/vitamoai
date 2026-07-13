@@ -3,8 +3,7 @@ package eu.vitamo.app.features.feed.ui.create
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import eu.vitamo.app.api.contracts.feed.CreateFeedItemRequest
-import eu.vitamo.app.api.contracts.feed.PrivacyStatus
-import eu.vitamo.app.api.contracts.feed.RichTextDocument
+import eu.vitamo.app.api.contracts.common.PrivacyStatus
 import eu.vitamo.app.features.feed.repository.FeedRepository
 import eu.vitamo.app.repository.RepositoryResult
 import kotlinx.coroutines.flow.MutableStateFlow

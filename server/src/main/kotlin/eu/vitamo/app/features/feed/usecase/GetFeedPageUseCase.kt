@@ -2,7 +2,7 @@ package eu.vitamo.app.features.feed.usecase
 
 import eu.vitamo.app.api.contracts.feed.FeedCategory
 import eu.vitamo.app.api.contracts.feed.FeedItemsPageResponse
-import eu.vitamo.app.api.contracts.feed.PrivacyStatus
+import eu.vitamo.app.api.contracts.common.PrivacyStatus
 import eu.vitamo.app.features.feed.mapper.toFeedItem
 import eu.vitamo.app.features.feed.model.FeedException
 import eu.vitamo.app.features.feed.repository.FeedRepository

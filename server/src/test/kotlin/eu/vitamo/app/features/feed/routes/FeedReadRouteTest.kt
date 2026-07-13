@@ -1,6 +1,6 @@
 package eu.vitamo.app.features.feed.routes
 
-import eu.vitamo.app.api.contracts.feed.PrivacyStatus
+import eu.vitamo.app.api.contracts.common.PrivacyStatus
 import eu.vitamo.app.features.feed.FakeFeedRepository
 import eu.vitamo.app.features.feed.FakeFriendshipService
 import eu.vitamo.app.features.feed.FakeUserRepository

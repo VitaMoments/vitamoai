@@ -3,8 +3,7 @@ package eu.vitamo.app.features.feed
 import eu.vitamo.app.api.contracts.feed.CreateFeedItemRequest
 import eu.vitamo.app.api.contracts.feed.FeedCategory
 import eu.vitamo.app.api.contracts.feed.MediaAsset
-import eu.vitamo.app.api.contracts.feed.PrivacyStatus
-import eu.vitamo.app.api.contracts.feed.RichTextDocument
+import eu.vitamo.app.api.contracts.common.PrivacyStatus
 import eu.vitamo.app.api.contracts.feed.UpdateFeedItemRequest
 import eu.vitamo.app.api.contracts.user.UserRole
 import eu.vitamo.app.features.feed.model.FeedItemRecord

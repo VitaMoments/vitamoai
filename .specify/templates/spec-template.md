@@ -98,17 +98,6 @@
 - **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
 - **FR-007**: System MUST retain user data for [NEEDS CLARIFICATION: retention period not specified]
 
-### Constitution Alignment *(mandatory)*
-
-- **CA-001 Boundary Integrity**: Feature changes MUST preserve module boundaries across
-  `core`, `app/shared`, `app/androidApp`, `app/iosApp`, and `server`.
-- **CA-002 Shared Contracts**: Shared request/response contracts MUST be canonical in
-  `core`; any DTO layer requires explicit justification.
-- **CA-003 Security Enforcement**: Server-side authorization, secret handling, and safe
-  error/logging behavior MUST be specified for relevant flows.
-- **CA-004 Incremental Testability**: Each user story MUST define an independent test path
-  and required test coverage scope.
-
 ### Key Entities *(include if feature involves data)*
 
 - **[Entity 1]**: [What it represents, key attributes without implementation]

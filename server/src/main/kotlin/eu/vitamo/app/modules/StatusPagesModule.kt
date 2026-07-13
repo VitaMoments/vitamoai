@@ -2,6 +2,7 @@ package eu.vitamo.app.modules
 
 import eu.vitamo.app.api.contracts.common.BaseErrorCode
 import eu.vitamo.app.api.result.ApiError
+import eu.vitamo.app.error.ErrorResponse
 import eu.vitamo.app.features.auth.model.AuthException
 import eu.vitamo.app.features.feed.model.FeedException
 import io.ktor.http.HttpStatusCode
@@ -74,8 +75,9 @@ fun Application.configureStatusPages() {
             )
         }
 
-        exception<FeedException> { call, cause ->
-            logger.warn("Feed request failed: {}", cause.code)
+        exception<ErrorResponse> { call, cause ->
+            logger.warn("Request failed: {}", cause.code)
+
             call.respondApiError(
                 status = cause.status,
                 code = cause.code,

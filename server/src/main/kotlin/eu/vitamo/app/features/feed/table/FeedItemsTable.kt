@@ -1,6 +1,6 @@
 package eu.vitamo.app.features.feed.table
 
-import eu.vitamo.app.api.contracts.feed.PrivacyStatus
+import eu.vitamo.app.api.contracts.common.PrivacyStatus
 import eu.vitamo.app.features.user.table.UsersTable
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable

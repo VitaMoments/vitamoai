@@ -15,8 +15,8 @@ object UsersTable : UuidTable(name = "users") {
     val bio = varchar(name = "bio", length = 500).nullable()
     val birthDate = date(name = "birth_date").nullable()
     val role = enumerationByName(name = "role", length = 50, klass = UserRole::class)
+    val emailVerifiedAt = timestamp(name = "email_verified_at").nullable()
     val createdAt = long(name = "created_at")
     val updatedAt = long(name = "updated_at")
-    val emailVerifiedAt = timestamp(name = "email_verified_at").nullable()
     val deletedAt = long(name = "deleted_at").nullable()
 }

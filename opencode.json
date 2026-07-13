@@ -1,0 +1,47 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  "instructions": [
+    "AGENTS.md",
+    ".opencode/instructions/*.md",
+    ".specify/memory/constitution.md"
+  ],
+  "watcher": {
+    "ignore": [
+      ".git/**",
+      ".gradle/**",
+      ".idea/**",
+      ".kotlin/**",
+      "build/**",
+      "**/build/**"
+    ]
+  },
+  "permission": {
+    "read": "allow",
+    "list": "allow",
+    "grep": "allow",
+    "edit": "allow",
+    "write": "allow",
+    "bash": {
+      "*": "ask",
+
+      "git status*": "allow",
+      "git branch*": "allow",
+      "git rev-parse*": "allow",
+      "git diff*": "allow",
+      "git log*": "allow",
+      "git switch*": "allow",
+      "git checkout -b*": "allow",
+
+      "git commit*": "ask",
+      "git push*": "ask",
+      "git merge*": "ask",
+      "git rebase*": "ask",
+
+      "git reset*": "deny",
+      "git clean*": "deny",
+      "git restore*": "ask",
+      "git stash*": "ask"
+    }
+  }
+}

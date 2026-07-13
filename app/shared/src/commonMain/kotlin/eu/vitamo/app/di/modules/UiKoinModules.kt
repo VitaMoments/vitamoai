@@ -6,5 +6,5 @@ import org.koin.core.module.Module
 
 internal val uiKoinModules: List<Module> = listOf(
     AuthUiKoinModule,
-    FeedUiKoinModule,
+    FeedUiKoinModule
 )

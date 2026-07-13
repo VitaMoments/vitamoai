@@ -17,8 +17,6 @@ captures
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
 
-.env
-
 # Logs
 webApp/logs
 webApp/*.log
@@ -73,5 +71,9 @@ Thumbs.db
 # Logs and env variants
 *.log
 .env*
-!.env
+!.env.example
+/.env
+/.env.*
+/.env*
 
+.opencode/*

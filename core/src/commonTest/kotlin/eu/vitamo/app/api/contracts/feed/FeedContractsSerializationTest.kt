@@ -1,5 +1,6 @@
 package eu.vitamo.app.api.contracts.feed
 
+import eu.vitamo.app.api.contracts.common.PrivacyStatus
 import eu.vitamo.app.api.contracts.user.PublicUser
 import eu.vitamo.app.api.contracts.user.UserRole
 import eu.vitamo.app.serialization.AppJson

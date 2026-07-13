@@ -1,6 +1,5 @@
 package eu.vitamo.app.features.feed.usecase
 
-import eu.vitamo.app.api.contracts.feed.RichTextDocument
 import eu.vitamo.app.api.contracts.feed.UpdateFeedItemRequest
 import eu.vitamo.app.features.feed.FakeFeedRepository
 import eu.vitamo.app.features.feed.FakeUserRepository
