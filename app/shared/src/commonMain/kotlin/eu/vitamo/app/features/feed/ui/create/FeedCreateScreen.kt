@@ -2,11 +2,12 @@ package eu.vitamo.app.features.feed.ui.create
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -16,8 +17,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import eu.vitamo.app.api.contracts.feed.FeedCategory
+import eu.vitamo.app.api.contracts.common.PrivacyStatus
 import org.koin.compose.viewmodel.koinViewModel
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun FeedCreateScreen(
     onCreated: () -> Unit,
@@ -33,42 +37,36 @@ fun FeedCreateScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text("Nieuw feed item", style = MaterialTheme.typography.headlineSmall)
-        
+
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
             value = state.content,
             onValueChange = viewModel::onContentChanged,
             label = { Text("Content") },
         )
-        
-        // Show media assets preview
-        if (state.mediaAssets.isNotEmpty()) {
-            Text("Bijlagen:")
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(state.mediaAssets) { asset ->
-                    // Placeholder for thumbnail - would typically show actual image
-                    Button(
-                        onClick = { viewModel.removeMediaAsset(asset) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(4.dp)
-                    ) {
-                        Text("Afbeelding (${asset.uuid})")
-                    }
-                }
+
+        Text("Privacy", style = MaterialTheme.typography.titleSmall)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            PrivacyStatus.entries.forEach { privacy ->
+                FilterChip(
+                    selected = state.privacy == privacy,
+                    onClick = { viewModel.onPrivacyChanged(privacy) },
+                    label = { Text(privacy.name) },
+                )
             }
         }
-        
-        // Add picture button would be here to select from camera/gallery 
-        Button(
-            onClick = { /* Open camera/gallery selection */ },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Voeg Media Toe")
+
+        Text("Categorieën", style = MaterialTheme.typography.titleSmall)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FeedCategory.entries.forEach { category ->
+                FilterChip(
+                    selected = state.selectedCategories.contains(category),
+                    onClick = { viewModel.onCategoryToggled(category) },
+                    label = { Text(category.name) },
+                )
+            }
         }
-        
+
         state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         Button(onClick = viewModel::submit, enabled = !state.isLoading) {
             Text("Opslaan")

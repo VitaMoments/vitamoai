@@ -3,6 +3,7 @@ package eu.vitamo.app.features.feed.ui.create
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import eu.vitamo.app.api.contracts.feed.CreateFeedItemRequest
+import eu.vitamo.app.api.contracts.feed.FeedCategory
 import eu.vitamo.app.api.contracts.common.PrivacyStatus
 import eu.vitamo.app.api.contracts.common.RichTextDocument
 import eu.vitamo.app.features.feed.repository.FeedRepository
@@ -17,6 +18,8 @@ import kotlinx.serialization.json.put
 
 data class FeedCreateState(
     val content: String = "",
+    val privacy: PrivacyStatus = PrivacyStatus.PUBLIC,
+    val selectedCategories: List<FeedCategory> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
     val created: Boolean = false,
@@ -30,6 +33,21 @@ class FeedCreateViewModel(
 
     fun onContentChanged(value: String) {
         _state.update { it.copy(content = value, error = null, created = false) }
+    }
+
+    fun onPrivacyChanged(value: PrivacyStatus) {
+        _state.update { it.copy(privacy = value, error = null, created = false) }
+    }
+
+    fun onCategoryToggled(category: FeedCategory) {
+        _state.update { current ->
+            val updated = if (current.selectedCategories.contains(category)) {
+                current.selectedCategories - category
+            } else {
+                current.selectedCategories + category
+            }
+            current.copy(selectedCategories = updated, error = null, created = false)
+        }
     }
 
     fun submit() {
@@ -47,7 +65,8 @@ class FeedCreateViewModel(
                         type = "markdown",
                         content = buildJsonObject { put("text", content) },
                     ),
-                    privacy = PrivacyStatus.PUBLIC,
+                    privacy = state.value.privacy,
+                    categories = state.value.selectedCategories,
                 )
             )
             when (result) {

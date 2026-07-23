@@ -232,6 +232,49 @@
 
 ---
 
+## Phase 8: Convergence
+
+**Purpose**: Close compilation-blocking gaps, correct server error mapping, and align UI state with ViewModel contracts.
+
+### Compilation-Blocking Fixes
+
+- [X] T071 [US1] Fix FeedCreateScreen references to nonexistent state/mediaAssets fields in app/shared/src/commonMain/kotlin/eu/vitamo/app/features/feed/ui/create/FeedCreateScreen.kt (lines 45,50,53,58); remove or replace `state.mediaAssets` and `viewModel.removeMediaAsset()` references to match actual `FeedCreateState` shape from app/shared/src/commonMain/kotlin/eu/vitamo/app/features/feed/ui/create/FeedCreateViewModel.kt; verify with `./gradlew :app:shared:compileKotlinIosSimulatorArm64`
+- [X] T072 [US1] Add privacy selection and categories selection to FeedCreateState and FeedCreateViewModel in app/shared/src/commonMain/kotlin/eu/vitamo/app/features/feed/ui/create/FeedCreateViewModel.kt per US1/AC1 and US1/AC2; wire selection in FeedCreateScreen; verify with `./gradlew :app:shared:compileKotlinIosSimulatorArm64`
+
+### Server Error Mapping
+
+- [X] T073 [US4] Add `exception<FeedException>` handler in server/src/main/kotlin/eu/vitamo/app/modules/StatusPagesModule.kt that maps `cause.status`, `cause.code`, and `cause.message` to the API error response per contracts/api-routes.md error format; verify with `./gradlew :server:test`
+
+### Update Screen Completeness
+
+- [X] T074 [US3] Extend FeedEditState and FeedEditViewModel in app/shared/src/commonMain/kotlin/eu/vitamo/app/features/feed/ui/edit/FeedEditViewModel.kt to support privacy and categories updates per US3/AC1 and US3/AC3; wire to UpdateFeedItemRequest; update FeedEditScreen UI; verify with `./gradlew :app:shared:compileKotlinIosSimulatorArm64`
+
+---
+
+## Phase 9: Convergence
+
+**Purpose**: Close remaining vertical-slice gaps in Detail and Edit screens; add missing acceptance-scenario tests for privacy enforcement, pagination, and validation.
+
+### Detail Screen Data Fetch (US2)
+
+- [X] T075 [US2] Fetch and display feed item content in FeedDetailScreen.kt via repository; replace bare UUID display with author name, content, privacy, categories, and timestamps per US2/AC1; add loading/error states; add `LaunchedEffect(feedItemId)` to call `FeedRepository.getFeedItem()`; verify with `./gradlew :app:shared:compileKotlinIosSimulatorArm64`
+
+### Edit Screen Pre-Load (US3)
+
+- [X] T076 [US3] Add `loadItem(uuid: Uuid)` method to FeedEditViewModel in app/shared/src/commonMain/kotlin/eu/vitamo/app/features/feed/ui/edit/FeedEditViewModel.kt; populate `FeedEditState.content`, `privacy`, and `selectedCategories` from fetched `FeedItem`; call `loadItem()` from `FeedEditScreen.kt` via `LaunchedEffect(uuid)` on mount per US3/AC1; verify with `./gradlew :app:shared:compileKotlinIosSimulatorArm64`
+
+### Missing Acceptance-Scenario Tests
+
+- [X] T077 [P] [US2] Add FRIENDS_ONLY privacy enforcement test in server/src/test/kotlin/eu/vitamo/app/features/feed/routes/FeedReadRouteTest.kt per US2/AC2: create FRIENDS_ONLY item as user A, verify user B (non-friend via `FakeFriendshipService(areFriends=false)`) receives `FeedException.Forbidden`; verify with `./gradlew :server:test`
+
+- [X] T078 [P] [US2] Add pagination boundary test in server/src/test/kotlin/eu/vitamo/app/features/feed/routes/FeedFlowIntegrationTest.kt per US2/AC3: create 25 items via `CreateFeedItemUseCase`, verify page 1 (limit=10, offset=0) returns 10 items + `hasMore=true`, page 3 (limit=10, offset=20) returns 5 items + `hasMore=false`; verify with `./gradlew :server:test`
+
+- [X] T079 [P] [US3] Add privacy-change-on-update test in server/src/test/kotlin/eu/vitamo/app/features/feed/usecase/UpdateFeedItemUseCaseTest.kt per US3/AC3: create PUBLIC item, update to FRIENDS_ONLY, verify privacy field changed and `updatedAt` advanced; verify with `./gradlew :server:test`
+
+- [X] T080 [P] [US3] Add invalid-content-on-update test in server/src/test/kotlin/eu/vitamo/app/features/feed/usecase/UpdateFeedItemUseCaseTest.kt per US3/AC4: update with empty RichTextDocument → assert `FeedException.InvalidContent`; verify with `./gradlew :server:test`
+
+---
+
 ## Format Validation Checklist
 
 - [x] Every task uses `- [ ] T### ...` checklist format.

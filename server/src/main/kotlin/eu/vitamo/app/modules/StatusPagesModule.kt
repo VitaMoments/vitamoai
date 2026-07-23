@@ -75,6 +75,16 @@ fun Application.configureStatusPages() {
             )
         }
 
+        exception<FeedException> { call, cause ->
+            logger.warn("Feed request failed: {} - {}", cause.code, cause.message)
+
+            call.respondApiError(
+                status = cause.status,
+                code = cause.code,
+                message = cause.message,
+            )
+        }
+
         exception<ErrorResponse> { call, cause ->
             logger.warn("Request failed: {}", cause.code)
 

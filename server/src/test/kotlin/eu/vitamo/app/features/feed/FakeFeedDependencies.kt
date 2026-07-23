@@ -2,9 +2,10 @@ package eu.vitamo.app.features.feed
 
 import eu.vitamo.app.api.contracts.feed.CreateFeedItemRequest
 import eu.vitamo.app.api.contracts.feed.FeedCategory
-import eu.vitamo.app.api.contracts.feed.MediaAsset
 import eu.vitamo.app.api.contracts.common.PrivacyStatus
+import eu.vitamo.app.api.contracts.common.RichTextDocument
 import eu.vitamo.app.api.contracts.feed.UpdateFeedItemRequest
+import eu.vitamo.app.api.contracts.media.MediaAsset
 import eu.vitamo.app.api.contracts.user.UserRole
 import eu.vitamo.app.features.feed.model.FeedItemRecord
 import eu.vitamo.app.features.feed.repository.FeedRepository
