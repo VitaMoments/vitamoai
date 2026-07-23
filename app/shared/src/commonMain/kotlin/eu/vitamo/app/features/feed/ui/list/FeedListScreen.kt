@@ -42,9 +42,7 @@ fun FeedListScreen(
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .windowInsetsPadding(WindowInsets.safeDrawing)
-            .padding(16.dp),
+            .fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Row(
