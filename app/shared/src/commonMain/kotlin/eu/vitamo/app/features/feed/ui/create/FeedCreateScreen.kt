@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -31,12 +33,42 @@ fun FeedCreateScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text("Nieuw feed item", style = MaterialTheme.typography.headlineSmall)
+        
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
             value = state.content,
             onValueChange = viewModel::onContentChanged,
             label = { Text("Content") },
         )
+        
+        // Show media assets preview
+        if (state.mediaAssets.isNotEmpty()) {
+            Text("Bijlagen:")
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(state.mediaAssets) { asset ->
+                    // Placeholder for thumbnail - would typically show actual image
+                    Button(
+                        onClick = { viewModel.removeMediaAsset(asset) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(4.dp)
+                    ) {
+                        Text("Afbeelding (${asset.uuid})")
+                    }
+                }
+            }
+        }
+        
+        // Add picture button would be here to select from camera/gallery 
+        Button(
+            onClick = { /* Open camera/gallery selection */ },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Voeg Media Toe")
+        }
+        
         state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         Button(onClick = viewModel::submit, enabled = !state.isLoading) {
             Text("Opslaan")
