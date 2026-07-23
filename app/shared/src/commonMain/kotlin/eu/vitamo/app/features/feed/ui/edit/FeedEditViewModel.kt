@@ -2,6 +2,7 @@ package eu.vitamo.app.features.feed.ui.edit
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import eu.vitamo.app.api.contracts.common.RichTextDocument
 import eu.vitamo.app.api.contracts.feed.UpdateFeedItemRequest
 import eu.vitamo.app.features.feed.repository.FeedRepository
 import eu.vitamo.app.repository.RepositoryResult
