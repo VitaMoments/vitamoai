@@ -27,10 +27,6 @@ private data class DrawerDestination(
 
 private val drawerDestinations = listOf(
     DrawerDestination(
-        title = "Feed",
-        destination = MainDestination.FeedList,
-    ),
-    DrawerDestination(
         title = "Home",
         destination = MainDestination.Home,
     ),
@@ -127,19 +123,9 @@ fun AppScaffold(
 private fun MainDestination.drawerRoot(): MainDestination =
     when (this) {
         MainDestination.Home -> MainDestination.Home
-
-        MainDestination.FeedList,
-        MainDestination.FeedCreate,
-        is MainDestination.FeedEdit,
-        is MainDestination.FeedDetail,
-            -> MainDestination.FeedList
     }
 
 private fun MainDestination.navigationTitle(): String =
     when (this) {
         MainDestination.Home -> "Home"
-        MainDestination.FeedList -> "Feed"
-        MainDestination.FeedCreate -> "Nieuw feeditem"
-        is MainDestination.FeedEdit -> "Feeditem bewerken"
-        is MainDestination.FeedDetail -> "Feeditem"
     }

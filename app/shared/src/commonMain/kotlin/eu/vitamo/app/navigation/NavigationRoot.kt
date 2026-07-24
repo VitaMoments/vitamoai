@@ -11,10 +11,6 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import eu.vitamo.app.features.feed.ui.create.FeedCreateScreen
-import eu.vitamo.app.features.feed.ui.detail.FeedDetailScreen
-import eu.vitamo.app.features.feed.ui.edit.FeedEditScreen
-import eu.vitamo.app.features.feed.ui.list.FeedListScreen
 import eu.vitamo.app.navigation.helper.parseAuthDeepLink
 import eu.vitamo.app.navigation.helper.setRoot
 import eu.vitamo.app.network.auth.AuthSessionCoordinator
@@ -41,7 +37,7 @@ fun NavigationRoot(
     }
 
     val initialDestination = when (authState) {
-        AuthStatus.Authenticated -> MainDestination.FeedList
+        AuthStatus.Authenticated -> MainDestination.Home
 
         AuthStatus.Unauthenticated ->
             parseAuthDeepLink(initialDeepLink)
@@ -70,63 +66,6 @@ fun NavigationRoot(
                             HomeScreen()
                         }
 
-                        entry<MainDestination.FeedList> {
-                            FeedListScreen(
-                                onCreateClicked = {
-                                    backStack.add(
-                                        MainDestination.FeedCreate,
-                                    )
-                                },
-                                onEditClicked = { id ->
-                                    backStack.add(
-                                        MainDestination.FeedEdit(id),
-                                    )
-                                },
-                                onDetailClicked = { id ->
-                                    backStack.add(
-                                        MainDestination.FeedDetail(id),
-                                    )
-                                },
-                            )
-                        }
-
-                        entry<MainDestination.FeedCreate> {
-                            FeedCreateScreen(
-                                onCreated = {
-                                    backStack.setRoot(
-                                        MainDestination.FeedList,
-                                    )
-                                },
-                            )
-                        }
-
-                        entry<MainDestination.FeedEdit> { destination ->
-                            FeedEditScreen(
-                                uuid = destination.itemId,
-                                onSaved = {
-                                    backStack.setRoot(
-                                        MainDestination.FeedList,
-                                    )
-                                },
-                            )
-                        }
-
-                        entry<MainDestination.FeedDetail> { destination ->
-                            FeedDetailScreen(
-                                feedItemId = destination.itemId,
-                                onBack = {
-                                    backStack.setRoot(
-                                        MainDestination.FeedList,
-                                    )
-                                },
-                                onDeleted = {
-                                    backStack.setRoot(
-                                        MainDestination.FeedList,
-                                    )
-                                },
-                            )
-                        }
-
                         /*
                          * Auth destinations zitten bewust in dezelfde
                          * entryProvider, zodat Navigation 3 ze kan opslaan
@@ -137,7 +76,7 @@ fun NavigationRoot(
                             LoginScreen(
                                 onLoginSuccess = {
                                     backStack.setRoot(
-                                        MainDestination.FeedList,
+                                        MainDestination.Home,
                                     )
                                 },
                                 onRegisterClick = {
@@ -184,7 +123,7 @@ fun NavigationRoot(
                                 email = destination.emailAddress,
                                 onVerificationSuccess = {
                                     backStack.setRoot(
-                                        MainDestination.FeedList,
+                                        MainDestination.Home,
                                     )
                                 },
                                 onBackToLogin = {

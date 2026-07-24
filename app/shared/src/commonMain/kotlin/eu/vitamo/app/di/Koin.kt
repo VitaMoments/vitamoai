@@ -6,13 +6,7 @@ import eu.vitamo.app.auth.api.AuthApiConfig
 import eu.vitamo.app.auth.api.KtorAuthApi
 import eu.vitamo.app.auth.repository.AuthRepository
 import eu.vitamo.app.auth.repository.DefaultAuthRepository
-import eu.vitamo.app.features.feed.api.FeedApi
-import eu.vitamo.app.features.feed.api.FeedApiConfig
-import eu.vitamo.app.features.feed.api.KtorFeedApi
-import eu.vitamo.app.features.feed.repository.DefaultFeedRepository
-import eu.vitamo.app.features.feed.repository.FeedRepository
 import eu.vitamo.app.di.modules.uiKoinModules
-import eu.vitamo.app.features.media.MediaUploadService
 import eu.vitamo.app.network.AuthCookieStorage
 import eu.vitamo.app.network.auth.AuthSessionCoordinator
 import eu.vitamo.app.network.auth.PersistentCookieStorage
@@ -32,11 +26,6 @@ internal val sharedAppModule: Module = module {
     single<AuthApi> { KtorAuthApi(get(), get()) }
     single { AuthSessionCoordinator(get(), get(), get()) }
     single<AuthRepository> { DefaultAuthRepository(get(), get()) }
-    single { FeedApiConfig() }
-    single<FeedApi> { KtorFeedApi(get(), get(), get()) }
-    single<FeedRepository> { DefaultFeedRepository(get()) }
-
-    single<MediaUploadService> { MediaUploadService(get()) }
 }
 
 fun initKoin() {

@@ -10,9 +10,6 @@ val appNavSavedStateConfiguration = SavedStateConfiguration {
         polymorphic(NavKey::class) {
 //            Authenticated destinations
             subclass(MainDestination.Home::class, MainDestination.Home.serializer())
-            subclass(MainDestination.FeedList::class, MainDestination.FeedList.serializer())
-            subclass(MainDestination.FeedCreate::class, MainDestination.FeedCreate.serializer())
-            subclass(MainDestination.FeedDetail::class, MainDestination.FeedDetail.serializer())
 
 //            Authentication Destinations
             subclass(AuthDestination.Login::class, AuthDestination.Login.serializer())
