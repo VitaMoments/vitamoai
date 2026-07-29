@@ -4,7 +4,7 @@ import eu.vitamo.app.database.helpers.dbQuery
 import eu.vitamo.app.features.auth.entity.EmailVerificationChallengeEntity
 import eu.vitamo.app.features.auth.entity.PasswordResetTokenEntity
 import eu.vitamo.app.features.auth.entity.toRecord
-import eu.vitamo.app.features.auth.model.AuthException
+import eu.vitamo.app.exception.AuthException
 import eu.vitamo.app.features.auth.model.PasswordResetTokenRecord
 import eu.vitamo.app.features.auth.table.PasswordResetTokensTable
 import eu.vitamo.app.features.user.entity.UserEntity

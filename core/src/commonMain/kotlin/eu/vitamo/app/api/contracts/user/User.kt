@@ -31,20 +31,6 @@ data class AuthenticatedUser(
 ) : User
 
 @Serializable
-@SerialName("private")
-data class PrivateUser(
-    @Contextual
-    override val id: Uuid,
-    override val displayName: String,
-    override val bio: String?,
-    override val role: UserRole,
-    val firstName: String?,
-    val lastName: String?,
-    val alias: String?,
-    val birthDate: LocalDate?,
-) : User
-
-@Serializable
 @SerialName("public")
 data class PublicUser(
     @Contextual
@@ -53,4 +39,9 @@ data class PublicUser(
     override val bio: String?,
     override val role: UserRole,
 ) : User
+
+@Serializable
+data class UserWithContext(
+    val user: User
+)
 

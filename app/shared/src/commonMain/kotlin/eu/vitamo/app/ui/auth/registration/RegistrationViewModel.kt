@@ -3,8 +3,10 @@ package eu.vitamo.app.ui.auth.registration
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import eu.vitamo.app.api.contracts.auth.AuthErrorCode
-import eu.vitamo.app.api.contracts.common.BaseErrorCode
+import eu.vitamo.app.api.contracts.common.ApiErrorCode
 import eu.vitamo.app.auth.repository.AuthRepository
+import eu.vitamo.app.network.helper.authErrorCodeOrNull
+import eu.vitamo.app.repository.RepositoryError
 import eu.vitamo.app.repository.RepositoryResult
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -147,8 +149,7 @@ class RegistrationViewModel(
                     }
 
                     handleRegisterError(
-                        code = result.error.code!!,
-                        message = result.error.message!!,
+                        error = result.error
                     )
                 }
             }
@@ -210,37 +211,84 @@ class RegistrationViewModel(
     }
 
     private fun handleRegisterError(
-        code: String,
-        message: String,
+        error: RepositoryError,
     ) {
-        when (code) {
+        when (error.authErrorCodeOrNull()) {
             AuthErrorCode.EMAIL_ALREADY_EXISTS -> {
                 _state.update {
-                    it.copy(emailError = "Dit e-mailadres is al in gebruik.")
+                    it.copy(
+                        emailError = "Dit e-mailadres is al in gebruik.",
+                    )
                 }
             }
 
             AuthErrorCode.INVALID_EMAIL -> {
                 _state.update {
-                    it.copy(emailError = "Vul een geldig e-mailadres in.")
-                }
-            }
-
-            BaseErrorCode.BAD_REQUEST_CODE -> {
-                _state.update {
-                    it.copy(generalError = message)
+                    it.copy(
+                        emailError = "Vul een geldig e-mailadres in.",
+                    )
                 }
             }
 
             else -> {
-                _state.update {
-                    it.copy(
-                        generalError = message.ifBlank {
+                handleGeneralRegisterError(error)
+            }
+        }
+    }
+
+    private fun handleGeneralRegisterError(
+        error: RepositoryError,
+    ) {
+        val message = when (error) {
+            is RepositoryError.Network ->
+                "Geen internetverbinding. Controleer je verbinding en probeer opnieuw."
+
+            is RepositoryError.Serialization ->
+                "Het antwoord van de server kon niet worden verwerkt."
+
+            is RepositoryError.Api -> {
+                when (ApiErrorCode.from(error.code)) {
+                    ApiErrorCode.BAD_REQUEST,
+                    ApiErrorCode.VALIDATION_ERROR,
+                        -> error.message.ifBlank {
+                        "Controleer de ingevulde gegevens."
+                    }
+
+                    ApiErrorCode.RATE_LIMIT ->
+                        "Je hebt te veel pogingen gedaan. Probeer het later opnieuw."
+
+                    else ->
+                        error.message.ifBlank {
                             "Registreren is mislukt. Probeer het opnieuw."
                         }
-                    )
                 }
             }
+
+            is RepositoryError.RequestLimitReached ->
+                "Je hebt te veel pogingen gedaan. Probeer het later opnieuw."
+
+            is RepositoryError.Validation,
+            is RepositoryError.BadRequest,
+                ->
+                error.message.ifBlank {
+                    "Controleer de ingevulde gegevens."
+                }
+
+            is RepositoryError.Internal,
+            is RepositoryError.Unknown,
+                ->
+                "Registreren is mislukt. Probeer het later opnieuw."
+
+            else ->
+                error.message.ifBlank {
+                    "Registreren is mislukt. Probeer het opnieuw."
+                }
+        }
+
+        _state.update {
+            it.copy(
+                generalError = message,
+            )
         }
     }
 }

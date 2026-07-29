@@ -2,13 +2,12 @@ package eu.vitamo.app.features.auth.usecase
 
 import eu.vitamo.app.api.contracts.auth.VerifyEmailRequest
 import eu.vitamo.app.api.contracts.auth.VerifyEmailResponse
-import eu.vitamo.app.features.auth.model.AuthException
+import eu.vitamo.app.exception.AuthException
 import eu.vitamo.app.features.auth.model.EmailVerificationPurpose
 import eu.vitamo.app.features.auth.repository.EmailVerificationChallengeRepository
 import eu.vitamo.app.features.auth.service.TokenHashService
 import eu.vitamo.app.features.user.mapper.toAuthenticatedUser
 import eu.vitamo.app.features.user.repository.UserRepository
-import io.ktor.http.HttpStatusCode
 import kotlin.time.Clock
 
 class VerifyEmailUseCase(

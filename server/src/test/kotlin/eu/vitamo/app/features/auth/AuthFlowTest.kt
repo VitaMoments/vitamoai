@@ -1,7 +1,6 @@
 package eu.vitamo.app.features.auth
 
 import eu.vitamo.app.api.contracts.auth.LoginRequest
-import eu.vitamo.app.api.contracts.auth.RegisterRequest
 import eu.vitamo.app.api.contracts.auth.VerifyEmailRequest
 import eu.vitamo.app.api.contracts.user.UserRole
 import eu.vitamo.app.features.auth.model.EmailVerificationChallenge
@@ -13,7 +12,7 @@ import eu.vitamo.app.features.auth.service.TokenHashService
 import eu.vitamo.app.features.auth.usecase.LoginUseCase
 import eu.vitamo.app.features.auth.usecase.VerifyEmailUseCase
 import eu.vitamo.app.config.JWTConfig
-import eu.vitamo.app.features.user.model.UserAccount
+import eu.vitamo.app.exception.AuthException
 import eu.vitamo.app.features.user.repository.UserRepository
 import eu.vitamo.app.features.auth.repository.EmailVerificationChallengeRepository
 import eu.vitamo.app.features.user.entity.UserEntity
@@ -99,7 +98,7 @@ class AuthFlowTest {
         )
         val useCase = VerifyEmailUseCase(userRepo, challengeRepo, FixedTokenHashService())
 
-        val failure = assertFailsWith<eu.vitamo.app.features.auth.model.AuthException> {
+        val failure = assertFailsWith<AuthException> {
             useCase.verify(VerifyEmailRequest(email = "ava@example.com", code = "000000"))
         }
 
@@ -122,7 +121,7 @@ class AuthFlowTest {
             refreshTokenService = NoopRefreshTokenService(),
         )
 
-        val failure = assertFailsWith<eu.vitamo.app.features.auth.model.AuthException> {
+        val failure = assertFailsWith<AuthException> {
             useCase.login(LoginRequest(email = "ava@example.com", password = "secret"))
         }
 

@@ -1,17 +1,53 @@
 package eu.vitamo.app.api.contracts.auth
 
-object AuthErrorCode {
-    const val INVALID_EMAIL_CODE = "INVALID_EMAIL"
-    const val INVALID_PASSWORD_RESET_CODE = "INVALID_PASSWORD_RESET_CODE"
-    const val INVALID_CREDENTIALS_CODE = "INVALID_CREDENTIALS"
-    const val INVALID_REFRESH_TOKEN_CODE = "INVALID_REFRESH_TOKEN"
-    const val INVALID_ACCESS_TOKEN_CODE = "INVALID_ACCESS_TOKEN"
-    const val EMAIL_NOT_VERIFIED_CODE = "EMAIL_NOT_VERIFIED"
-    const val EMAIL_ALREADY_EXISTS_CODE = "EMAIL_ALREADY_EXISTS"
-    const val VERIFICATION_ATTEMPTS_EXCEEDED_CODE = "VERIFICATION_ATTEMPTS_EXCEEDED"
-    const val EMAIL_VERIFICATION_FAILED_CODE = "EMAIL_VERIFICATION_EMAIL_FAILED"
-    const val FORGOT_PASSWORD_FAILED_CODE = "FORGOT_PASSWORD_FAILED_CODE"
-    const val INVALID_VERIFICATION_CODE = "INVALID_VERIFICATION_CODE"
-    const val EMAIL_ALREADY_EXISTS = "EMAIL_ALREADY_EXISTS"
-    const val INVALID_EMAIL = "INVALID_EMAIL"
+import eu.vitamo.app.api.result.ErrorCode
+import eu.vitamo.app.api.result.ErrorCodeDefinition
+
+enum class AuthErrorCode(
+    override val code: ErrorCode,
+) : ErrorCodeDefinition {
+    INVALID_CREDENTIALS(
+        ErrorCode("INVALID_CREDENTIALS"),
+    ),
+    INVALID_REFRESH_TOKEN(
+        ErrorCode("INVALID_REFRESH_TOKEN"),
+    ),
+    INVALID_ACCESS_TOKEN(
+        ErrorCode("INVALID_ACCESS_TOKEN"),
+    ),
+    EMAIL_NOT_VERIFIED(
+        ErrorCode("EMAIL_NOT_VERIFIED"),
+    ),
+    EMAIL_ALREADY_EXISTS(
+        ErrorCode("EMAIL_ALREADY_EXISTS"),
+    ),
+    EMAIL_VERIFICATION_FAILED(
+        ErrorCode("EMAIL_VERIFICATION_EMAIL_FAILED"),
+    ),
+    VERIFICATION_ATTEMPTS_EXCEEDED(
+        ErrorCode("VERIFICATION_ATTEMPTS_EXCEEDED"),
+    ),
+    INVALID_VERIFICATION_CODE(
+        ErrorCode("INVALID_VERIFICATION_CODE"),
+    ),
+    INVALID_PASSWORD_RESET_TOKEN(
+        ErrorCode("INVALID_PASSWORD_RESET_CODE"),
+    ),
+    FORGOT_PASSWORD_FAILED(
+        ErrorCode("FORGOT_PASSWORD_FAILED_CODE"),
+    ),
+    INVALID_PASSWORD(
+        ErrorCode("INVALID_PASSWORD")
+    ),
+    INVALID_EMAIL(
+        ErrorCode("INVALID_EMAIL")
+    )
+    ;
+
+    companion object {
+        private val byCode = entries.associateBy { it.code }
+
+        fun from(code: ErrorCode): AuthErrorCode? =
+            byCode[code]
+    }
 }

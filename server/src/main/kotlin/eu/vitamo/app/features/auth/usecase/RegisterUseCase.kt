@@ -2,7 +2,8 @@ package eu.vitamo.app.features.auth.usecase
 
 import eu.vitamo.app.api.contracts.auth.RegisterRequest
 import eu.vitamo.app.api.contracts.auth.RegisterResponse
-import eu.vitamo.app.features.auth.model.AuthException
+import eu.vitamo.app.exception.ApiException
+import eu.vitamo.app.exception.AuthException
 import eu.vitamo.app.features.auth.model.EmailVerificationPurpose
 import eu.vitamo.app.features.auth.repository.EmailVerificationChallengeRepository
 import eu.vitamo.app.features.auth.service.EmailVerificationCodeService
@@ -25,18 +26,19 @@ class RegisterUseCase(
 ) {
     suspend fun register(request: RegisterRequest): RegisterResponse {
         val email = EmailValidator.normalizeOrThrow(request.email) {
-            throw AuthException.BadRequest(
+            throw AuthException.InvalidEmail(
                 message = "Email is invalid.",
             )
         }
-        if (userRepository.findByEmail(email) != null) {
-            throw AuthException.EmailAlreadyExists()
-        }
 
         PasswordValidator.validateOrThrow(request.password) {
-            throw AuthException.BadRequest(
+            throw AuthException.InvalidPassword(
                 message = "Password is invalid: $it",
             )
+        }
+
+        if (userRepository.findByEmail(email) != null) {
+            throw AuthException.EmailAlreadyExists()
         }
 
         val now = Clock.System.now()

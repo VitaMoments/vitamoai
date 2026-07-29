@@ -22,7 +22,7 @@ import eu.vitamo.app.features.auth.usecase.ResendEmailVerificationUseCase
 import eu.vitamo.app.features.auth.usecase.RefreshSessionUseCase
 import eu.vitamo.app.features.auth.usecase.ResetPasswordUseCase
 import eu.vitamo.app.features.auth.usecase.VerifyEmailUseCase
-import eu.vitamo.app.features.user.repository.ExposedUserRepository
+import eu.vitamo.app.features.user.repository.UserRepositoryImpl
 import eu.vitamo.app.features.user.repository.UserRepository
 import eu.vitamo.app.mail.MailService
 import eu.vitamo.app.mail.template.MailTemplateRenderer
@@ -38,7 +38,7 @@ val authModule = module {
     single<PasswordHashService> { BCryptPasswordHashService() }
     single<RefreshTokenService> { RefreshTokenService(get()) }
 
-    single<UserRepository> { ExposedUserRepository() }
+    single<UserRepository> { UserRepositoryImpl() }
     single<EmailVerificationChallengeRepository> { ExposedEmailVerificationChallengeRepository() }
     single<PasswordResetTokenRepository> { ExposedPasswordResetTokenRepository() }
 

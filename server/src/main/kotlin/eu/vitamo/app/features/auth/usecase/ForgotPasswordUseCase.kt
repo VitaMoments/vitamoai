@@ -2,9 +2,7 @@ package eu.vitamo.app.features.auth.usecase
 
 import eu.vitamo.app.api.contracts.auth.ForgotPasswordRequest
 import eu.vitamo.app.api.contracts.auth.ForgotPasswordResponse
-import eu.vitamo.app.api.contracts.auth.ResendEmailVerificationResponse
-import eu.vitamo.app.database.helpers.kotlinUuid
-import eu.vitamo.app.features.auth.model.AuthException
+import eu.vitamo.app.exception.AuthException
 import eu.vitamo.app.features.auth.repository.PasswordResetTokenRepository
 import eu.vitamo.app.features.auth.service.AuthMailSender
 import eu.vitamo.app.features.auth.service.PasswordResetTokenService
@@ -21,9 +19,7 @@ class ForgotPasswordUseCase(
 ) {
     suspend operator fun invoke(request: ForgotPasswordRequest) : ForgotPasswordResponse {
         val email = EmailValidator.normalizeOrThrow(request.email) {
-            throw AuthException.BadRequest(
-                message = "Email is invalid."
-            )
+            throw AuthException.InvalidEmail()
         }
         val user = userRepository.findByEmail(email) ?: return ForgotPasswordResponse()
 

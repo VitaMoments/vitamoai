@@ -6,6 +6,6 @@ sealed interface ApiResult<out T> {
     ) : ApiResult<T>
 
     data class Error(
-        val error: ApiError,
+        val error: ApiFailure,
     ) : ApiResult<Nothing>
 }

@@ -44,6 +44,7 @@ fun NavigationRoot(
                 ?: AuthDestination.Login
 
         AuthStatus.Loading -> AuthDestination.Login
+        is AuthStatus.Unavailable -> ErrorDestination.Unavailable
     }
 
     key(initialDestination) {

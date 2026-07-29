@@ -2,7 +2,8 @@ package eu.vitamo.app.features.auth.usecase
 
 import eu.vitamo.app.api.contracts.auth.ResendEmailVerificationRequest
 import eu.vitamo.app.api.contracts.auth.ResendEmailVerificationResponse
-import eu.vitamo.app.features.auth.model.AuthException
+import eu.vitamo.app.exception.ApiException
+import eu.vitamo.app.exception.AuthException
 import eu.vitamo.app.features.auth.model.EmailVerificationPurpose
 import eu.vitamo.app.features.auth.repository.EmailVerificationChallengeRepository
 import eu.vitamo.app.features.auth.service.EmailVerificationCodeService
@@ -71,7 +72,7 @@ class ResendEmailVerificationUseCase(
     private fun normalizeEmail(email: String): String {
         val normalized = email.trim().lowercase()
         if (normalized.isBlank() || !EMAIL_REGEX.matches(normalized)) {
-            throw AuthException.BadRequest(
+            throw ApiException.BadRequest(
                 message = "Email is invalid."
             )
         }

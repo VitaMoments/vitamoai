@@ -1,10 +1,9 @@
 package eu.vitamo.app.features.auth.model
 
-import eu.vitamo.app.features.auth.model.AuthToken
-import eu.vitamo.app.features.user.model.UserAccount
+import eu.vitamo.app.api.contracts.user.AuthenticatedUser
 
 data class LoginSession(
-    val user: UserAccount,
+    val user: AuthenticatedUser,
     val accessToken: AuthToken,
     val refreshToken: AuthToken,
 )

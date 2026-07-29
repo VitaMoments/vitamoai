@@ -8,7 +8,7 @@ import eu.vitamo.app.api.contracts.auth.ResendEmailVerificationRequest
 import eu.vitamo.app.api.contracts.auth.ResetPasswordRequest
 import eu.vitamo.app.api.contracts.auth.SessionResponse
 import eu.vitamo.app.api.contracts.auth.VerifyEmailRequest
-import eu.vitamo.app.features.auth.model.AuthException
+import eu.vitamo.app.exception.AuthException
 import eu.vitamo.app.features.auth.model.LoginSession
 import eu.vitamo.app.features.auth.usecase.ForgotPasswordUseCase
 import eu.vitamo.app.features.auth.usecase.LoginUseCase
@@ -17,7 +17,6 @@ import eu.vitamo.app.features.auth.usecase.ResendEmailVerificationUseCase
 import eu.vitamo.app.features.auth.usecase.RefreshSessionUseCase
 import eu.vitamo.app.features.auth.usecase.ResetPasswordUseCase
 import eu.vitamo.app.features.auth.usecase.VerifyEmailUseCase
-import eu.vitamo.app.features.user.mapper.toAuthenticatedUser
 import eu.vitamo.app.config.AuthCookieConfig
 import eu.vitamo.app.infrastructure.network.helpers.requireUserId
 import io.ktor.http.HttpHeaders
@@ -67,7 +66,7 @@ fun Route.authRoutes() {
             appendAuthCookies(call, session, authCookieConfig)
             call.respond(
                 LoginResponse(
-                    user = session.user.toAuthenticatedUser()
+                    user = session.user
                 )
             )
         }
@@ -79,7 +78,7 @@ fun Route.authRoutes() {
             appendAuthCookies(call, session, authCookieConfig)
             call.respond(
                 SessionResponse(
-                    user = session.user.toAuthenticatedUser()
+                    user = session.user
                 )
             )
         }
@@ -116,11 +115,11 @@ fun Route.authRoutes() {
 
             get("/session") {
                 val userId = call.requireUserId()
-                val session = refreshSessionUseCase.refreshTokensByUserId(userId)
+                val session = refreshSessionUseCase.createSessionByUserId(userId)
                 appendAuthCookies(call, session, authCookieConfig)
                 call.respond(
                     SessionResponse(
-                        user = session.user.toAuthenticatedUser()
+                        user = session.user
                     )
                 )
             }

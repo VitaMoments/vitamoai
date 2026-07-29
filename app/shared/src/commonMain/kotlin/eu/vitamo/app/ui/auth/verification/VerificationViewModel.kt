@@ -4,8 +4,10 @@ package eu.vitamo.app.ui.auth.verification
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import eu.vitamo.app.api.contracts.auth.AuthErrorCode
-import eu.vitamo.app.api.contracts.common.BaseErrorCode.BAD_REQUEST_CODE
+import eu.vitamo.app.api.contracts.common.ApiErrorCode
 import eu.vitamo.app.auth.repository.AuthRepository
+import eu.vitamo.app.network.helper.authErrorCodeOrNull
+import eu.vitamo.app.repository.RepositoryError
 import eu.vitamo.app.repository.RepositoryResult
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -82,8 +84,7 @@ class VerificationViewModel(
                     }
 
                     handleVerifyError(
-                        code = result.error.code!!,
-                        message = result.error.message!!,
+                        error = result.error
                     )
                 }
             }
@@ -121,8 +122,7 @@ class VerificationViewModel(
                     }
 
                     handleVerifyError(
-                        code = result.error.code!!,
-                        message = result.error.message!!,
+                        error = result.error
                     )
                 }
             }
@@ -130,10 +130,9 @@ class VerificationViewModel(
     }
 
     private fun handleVerifyError(
-        code: String,
-        message: String,
+        error: RepositoryError,
     ) {
-        when (code) {
+        when (error.authErrorCodeOrNull()) {
             AuthErrorCode.INVALID_VERIFICATION_CODE -> {
                 _state.update {
                     it.copy(
@@ -142,7 +141,7 @@ class VerificationViewModel(
                 }
             }
 
-            AuthErrorCode.VERIFICATION_ATTEMPTS_EXCEEDED_CODE -> {
+            AuthErrorCode.VERIFICATION_ATTEMPTS_EXCEEDED -> {
                 _state.update {
                     it.copy(
                         generalError = "Je hebt te vaak een verkeerde code ingevoerd. Vraag een nieuwe code aan.",
@@ -150,7 +149,7 @@ class VerificationViewModel(
                 }
             }
 
-            AuthErrorCode.EMAIL_VERIFICATION_FAILED_CODE -> {
+            AuthErrorCode.EMAIL_VERIFICATION_FAILED -> {
                 _state.update {
                     it.copy(
                         generalError = "Het verifiëren van je e-mailadres is mislukt.",
@@ -158,23 +157,74 @@ class VerificationViewModel(
                 }
             }
 
-            BAD_REQUEST_CODE -> {
-                _state.update {
-                    it.copy(
-                        generalError = message,
-                    )
+            else -> {
+                handleGeneralVerifyError(error)
+            }
+        }
+    }
+    private fun handleGeneralVerifyError(
+        error: RepositoryError,
+    ) {
+        val message = when (error) {
+            is RepositoryError.Network -> {
+                "Geen internetverbinding. Controleer je verbinding en probeer opnieuw."
+            }
+
+            is RepositoryError.Serialization -> {
+                "Het antwoord van de server kon niet worden verwerkt."
+            }
+
+            is RepositoryError.Api -> {
+                when (ApiErrorCode.from(error.code)) {
+                    ApiErrorCode.BAD_REQUEST,
+                    ApiErrorCode.VALIDATION_ERROR,
+                        -> {
+                        error.message.ifBlank {
+                            "Controleer de ingevulde verificatiecode."
+                        }
+                    }
+
+                    ApiErrorCode.RATE_LIMIT -> {
+                        "Je hebt te veel pogingen gedaan. Probeer het later opnieuw."
+                    }
+
+                    else -> {
+                        error.message.ifBlank {
+                            "Verificatie is mislukt. Probeer het opnieuw."
+                        }
+                    }
                 }
             }
 
-            else -> {
-                _state.update {
-                    it.copy(
-                        generalError = message.ifBlank {
-                            "Verificatie is mislukt. Probeer het opnieuw."
-                        },
-                    )
+            is RepositoryError.RequestLimitReached -> {
+                "Je hebt te veel pogingen gedaan. Probeer het later opnieuw."
+            }
+
+            is RepositoryError.Validation,
+            is RepositoryError.BadRequest,
+                -> {
+                error.message.ifBlank {
+                    "Controleer de ingevulde verificatiecode."
                 }
             }
+
+            is RepositoryError.Internal,
+            is RepositoryError.Unknown,
+                -> {
+                "Verificatie is mislukt. Probeer het later opnieuw."
+            }
+
+            else -> {
+                error.message.ifBlank {
+                    "Verificatie is mislukt. Probeer het opnieuw."
+                }
+            }
+        }
+
+        _state.update {
+            it.copy(
+                generalError = message,
+            )
         }
     }
 }

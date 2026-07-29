@@ -1,9 +1,10 @@
 package eu.vitamo.app.modules
 
-import eu.vitamo.app.api.contracts.common.BaseErrorCode
+import eu.vitamo.app.api.contracts.common.ApiErrorCode
 import eu.vitamo.app.api.result.ApiError
-import eu.vitamo.app.error.ErrorResponse
-import eu.vitamo.app.features.auth.model.AuthException
+import eu.vitamo.app.api.result.ErrorCode
+import eu.vitamo.app.exception.ApiException
+import eu.vitamo.app.exception.AuthException
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.JsonConvertException
 import io.ktor.server.application.Application
@@ -25,47 +26,63 @@ fun Application.configureStatusPages() {
 
     install(StatusPages) {
         exception<SerializationException> { call, cause ->
-            logger.warn("Failed to deserialize request body: {}", cause.message)
+            logger.warn(
+                "Failed to deserialize request body: {}",
+                cause.message,
+            )
 
             call.respondApiError(
                 status = HttpStatusCode.BadRequest,
-                code = BaseErrorCode.BAD_REQUEST_CODE,
+                code = ApiErrorCode.BAD_REQUEST.code,
                 message = "Invalid JSON",
             )
         }
 
         exception<JsonConvertException> { call, cause ->
-            logger.warn("Failed to convert request body: {}", cause.message)
+            logger.warn(
+                "Failed to convert request body: {}",
+                cause.message,
+            )
 
             call.respondApiError(
                 status = HttpStatusCode.BadRequest,
-                code = BaseErrorCode.BAD_REQUEST_CODE,
+                code = ApiErrorCode.BAD_REQUEST.code,
                 message = "Invalid JSON",
             )
         }
 
         exception<BadRequestException> { call, cause ->
-            logger.warn("Bad request payload: {}", cause.message)
+            logger.warn(
+                "Bad request payload: {}",
+                cause.message,
+            )
 
             call.respondApiError(
                 status = HttpStatusCode.BadRequest,
-                code = BaseErrorCode.BAD_REQUEST_CODE,
+                code = ApiErrorCode.BAD_REQUEST.code,
                 message = "Invalid request body",
             )
         }
 
         exception<IllegalArgumentException> { call, cause ->
-            logger.warn("Invalid request data: {}", cause.message)
+            logger.warn(
+                "Invalid request data: {}",
+                cause.message,
+            )
 
             call.respondApiError(
                 status = HttpStatusCode.BadRequest,
-                code = BaseErrorCode.BAD_REQUEST_CODE,
+                code = ApiErrorCode.BAD_REQUEST.code,
                 message = cause.message ?: "Invalid request data",
             )
         }
 
         exception<AuthException> { call, cause ->
-            logger.warn("Auth request failed: {}", cause.code)
+            logger.warn(
+                "Authentication request failed: code={}, status={}",
+                cause.code,
+                cause.status.value,
+            )
 
             call.respondApiError(
                 status = cause.status,
@@ -74,8 +91,12 @@ fun Application.configureStatusPages() {
             )
         }
 
-        exception<ErrorResponse> { call, cause ->
-            logger.warn("Request failed: {}", cause.code)
+        exception<ApiException> { call, cause ->
+            logger.warn(
+                "API request failed: code={}, status={}",
+                cause.code,
+                cause.status.value,
+            )
 
             call.respondApiError(
                 status = cause.status,
@@ -85,11 +106,14 @@ fun Application.configureStatusPages() {
         }
 
         exception<Throwable> { call, cause ->
-            logger.error("Unhandled server error", cause)
+            logger.error(
+                "Unhandled server error",
+                cause,
+            )
 
             call.respondApiError(
                 status = HttpStatusCode.InternalServerError,
-                code = "INTERNAL_SERVER_ERROR",
+                code = ApiErrorCode.INTERNAL.code,
                 message = "Internal server error",
             )
         }
@@ -98,7 +122,7 @@ fun Application.configureStatusPages() {
 
 private suspend fun ApplicationCall.respondApiError(
     status: HttpStatusCode,
-    code: String,
+    code: ErrorCode,
     message: String,
 ) {
     respond(

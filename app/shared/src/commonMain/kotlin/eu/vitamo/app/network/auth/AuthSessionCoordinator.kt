@@ -1,9 +1,10 @@
 package eu.vitamo.app.network.auth
 
+import eu.vitamo.app.api.result.ApiResult
 import eu.vitamo.app.auth.api.AuthApi
 import eu.vitamo.app.auth.api.AuthApiConfig
-import eu.vitamo.app.api.result.ApiResult
 import eu.vitamo.app.network.AuthCookieStorage
+import eu.vitamo.app.network.helper.isUnauthorized
 import io.ktor.http.Url
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,46 +15,60 @@ class AuthSessionCoordinator(
     private val authApiConfig: AuthApiConfig,
     private val cookieStorage: AuthCookieStorage,
 ) {
-    private val _state = MutableStateFlow<AuthStatus>(AuthStatus.Loading)
-    val state: StateFlow<AuthStatus> = _state.asStateFlow()
+    private val _state = MutableStateFlow<AuthStatus>(
+        AuthStatus.Loading,
+    )
+
+    val state: StateFlow<AuthStatus> =
+        _state.asStateFlow()
 
     suspend fun bootstrap() {
+        _state.value = AuthStatus.Loading
+
         if (!hasAuthCookies()) {
             _state.value = AuthStatus.Unauthenticated
             return
         }
 
-        when (val sessionResult = authApi.session()) {
+        when (val result = authApi.session()) {
             is ApiResult.Success -> {
                 _state.value = AuthStatus.Authenticated
             }
 
             is ApiResult.Error -> {
-                if (isUnauthorized(sessionResult.error.status) && refreshSession()) {
-                    return
+                if (result.error.isUnauthorized()) {
+                    refreshSession()
+                } else {
+                    _state.value = AuthStatus.Unavailable(
+                        failure = result.error,
+                    )
                 }
-                signOut()
             }
         }
     }
 
     suspend fun refreshSession(): Boolean {
-        return when (val refreshResult = authApi.refreshSession()) {
+        return when (val result = authApi.refreshSession()) {
             is ApiResult.Success -> {
                 _state.value = AuthStatus.Authenticated
                 true
             }
 
             is ApiResult.Error -> {
-                if (isUnauthorized(refreshResult.error.status)) {
+                if (result.error.isUnauthorized()) {
                     signOut()
+                } else {
+                    _state.value = AuthStatus.Unavailable(
+                        failure = result.error,
+                    )
                 }
+
                 false
             }
         }
     }
 
-    suspend fun markAuthenticated() {
+    fun markAuthenticated() {
         _state.value = AuthStatus.Authenticated
     }
 
@@ -63,12 +78,16 @@ class AuthSessionCoordinator(
     }
 
     suspend fun hasAuthCookies(): Boolean {
-        return cookieStorage.get(Url(authApiConfig.baseUrl)).any { cookie ->
-            cookie.name == "access_token" || cookie.name == "refresh_token"
-        }
+        return cookieStorage
+            .get(Url(authApiConfig.baseUrl))
+            .any { cookie ->
+                cookie.name == ACCESS_TOKEN_COOKIE ||
+                        cookie.name == REFRESH_TOKEN_COOKIE
+            }
     }
 
-    private fun isUnauthorized(status: Int?): Boolean {
-        return status == 401
+    private companion object {
+        const val ACCESS_TOKEN_COOKIE = "access_token"
+        const val REFRESH_TOKEN_COOKIE = "refresh_token"
     }
 }

@@ -3,7 +3,8 @@ package eu.vitamo.app.features.auth.usecase
 import eu.vitamo.app.api.contracts.auth.ResetPasswordRequest
 import eu.vitamo.app.api.contracts.auth.ResetPasswordResponse
 import eu.vitamo.app.database.helpers.kotlinUuid
-import eu.vitamo.app.features.auth.model.AuthException
+import eu.vitamo.app.exception.ApiException
+import eu.vitamo.app.exception.AuthException
 import eu.vitamo.app.features.auth.repository.PasswordResetTokenRepository
 import eu.vitamo.app.features.auth.service.PasswordResetTokenService
 import eu.vitamo.app.features.user.repository.UserRepository
@@ -23,23 +24,23 @@ class ResetPasswordUseCase(
             throw AuthException.InvalidPasswordResetToken()
         }
         EmailValidator.normalizeOrThrow(request.email) {
-            throw AuthException.BadRequest(
+            throw ApiException.BadRequest(
                 message = "Email is invalid."
             )
         }
         PasswordValidator.validateOrThrow(request.newPassword) {
-            throw AuthException.BadRequest(
+            throw ApiException.BadRequest(
                 message = "Password is invalid: $it"
             )
         }
 
-        val userEntity = userRepository.findByEmailAsEntity(request.email) ?: throw AuthException.InvalidPasswordResetToken()
+        val userRecord = userRepository.findByEmail(request.email) ?: throw AuthException.InvalidPasswordResetToken()
 
         val now = Clock.System.now()
         val tokenHash = tokenService.hashToken(request.token)
         val resetToken = tokenRepository.findByTokenHash(tokenHash) ?: throw AuthException.InvalidPasswordResetToken()
 
-        if (resetToken.userId != userEntity.kotlinUuid) {
+        if (resetToken.userId != userRecord.id) {
             tokenRepository.incrementAttempts(
                 tokenId = resetToken.id,
                 attemptedAt = now,
@@ -69,10 +70,10 @@ class ResetPasswordUseCase(
 
         val newPassword = passwordHashService.hashPassword(request.newPassword)
 
-        userRepository.updatePassword(userid = userEntity.kotlinUuid, hashedPassword = newPassword)
+        userRepository.updatePassword(userid = userRecord.id, hashedPassword = newPassword)
 
         tokenRepository.consumeActiveForUser(
-            userId = userEntity.kotlinUuid,
+            userId = userRecord.id,
             consumedAt = now,
         )
 

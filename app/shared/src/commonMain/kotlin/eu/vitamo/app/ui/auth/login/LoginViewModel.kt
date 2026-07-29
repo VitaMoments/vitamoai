@@ -2,10 +2,10 @@ package eu.vitamo.app.ui.auth.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import eu.vitamo.app.api.contracts.auth.AuthErrorCode.EMAIL_NOT_VERIFIED_CODE
-import eu.vitamo.app.api.contracts.auth.AuthErrorCode.INVALID_CREDENTIALS_CODE
-import eu.vitamo.app.api.contracts.auth.LoginRequest
+import eu.vitamo.app.api.contracts.auth.AuthErrorCode
 import eu.vitamo.app.auth.repository.AuthRepository
+import eu.vitamo.app.network.helper.authErrorCodeOrNull
+import eu.vitamo.app.repository.RepositoryError
 import eu.vitamo.app.repository.RepositoryResult
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -86,8 +86,7 @@ class LoginViewModel(
                     }
 
                     handleLoginError(
-                        code = result.error.code,
-                        fallbackMessage = result.error.message,
+                        error = result.error,
                         emailAddress = emailAddress,
                     )
                 }
@@ -124,35 +123,62 @@ class LoginViewModel(
     }
 
     private suspend fun handleLoginError(
-        code: String?,
-        fallbackMessage: String?,
+        error: RepositoryError,
         emailAddress: String,
     ) {
-        when (code) {
-            EMAIL_NOT_VERIFIED_CODE -> {
+        when (error.authErrorCodeOrNull()) {
+            AuthErrorCode.INVALID_CREDENTIALS -> {
+                _state.update {
+                    it.copy(
+                        generalError =
+                            "E-mailadres of wachtwoord is onjuist.",
+                    )
+                }
+            }
+
+            AuthErrorCode.EMAIL_NOT_VERIFIED -> {
                 _events.send(
                     LoginEvent.EmailNotVerified(
                         emailAddress = emailAddress,
-                    )
+                    ),
                 )
             }
 
-            INVALID_CREDENTIALS_CODE -> {
-                _state.update {
-                    it.copy(
-                        generalError = "E-mailadres of wachtwoord is onjuist.",
-                    )
-                }
-            }
-
             else -> {
-                _state.update {
-                    it.copy(
-                        generalError = fallbackMessage
-                            ?: "Inloggen is mislukt. Probeer het opnieuw.",
-                    )
-                }
+                handleGeneralRepositoryError(error)
             }
+        }
+    }
+
+    private fun handleGeneralRepositoryError(
+        error: RepositoryError,
+    ) {
+        val message = when (error) {
+            is RepositoryError.Network ->
+                "Geen internetverbinding. Controleer je verbinding en probeer opnieuw."
+
+            is RepositoryError.Serialization ->
+                "Het antwoord van de server kon niet worden verwerkt."
+
+            is RepositoryError.Api ->
+                error.message
+
+            is RepositoryError.RequestLimitReached ->
+                "Je hebt te veel pogingen gedaan. Probeer het later opnieuw."
+
+            is RepositoryError.Internal,
+            is RepositoryError.Unknown,
+                ->
+                "Inloggen is mislukt. Probeer het later opnieuw."
+
+            else ->
+                error.message
+        }
+
+        _state.update {
+            it.copy(
+                generalError = message,
+            )
         }
     }
 }

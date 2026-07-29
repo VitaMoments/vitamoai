@@ -11,7 +11,6 @@ import eu.vitamo.app.features.auth.service.AuthMailSender
 import eu.vitamo.app.features.auth.service.TokenHashService
 import eu.vitamo.app.features.auth.usecase.ResendEmailVerificationUseCase
 import eu.vitamo.app.features.user.entity.UserEntity
-import eu.vitamo.app.features.user.model.UserAccount
 import eu.vitamo.app.features.user.repository.UserRepository
 import eu.vitamo.app.mail.MailService
 import eu.vitamo.app.mail.model.MailMessage
