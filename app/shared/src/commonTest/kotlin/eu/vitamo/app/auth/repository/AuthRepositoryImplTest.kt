@@ -13,8 +13,6 @@ import eu.vitamo.app.api.contracts.auth.ResetPasswordResponse
 import eu.vitamo.app.api.contracts.auth.SessionResponse
 import eu.vitamo.app.api.contracts.auth.VerifyEmailRequest
 import eu.vitamo.app.api.contracts.auth.VerifyEmailResponse
-import eu.vitamo.app.api.contracts.user.AuthenticatedUser
-import eu.vitamo.app.api.contracts.user.UserRole
 import eu.vitamo.app.api.result.ApiResult
 import eu.vitamo.app.auth.api.AuthApi
 import eu.vitamo.app.auth.api.AuthApiConfig
@@ -29,17 +27,15 @@ import io.ktor.http.Url
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
-import kotlin.uuid.Uuid
 import kotlinx.coroutines.runBlocking
 
-class DefaultAuthRepositoryTest {
+class AuthRepositoryImplTest {
     @Test
     fun login_marksSessionAuthenticated() = runBlocking {
         val api = FakeAuthApi()
         val cookieStorage = ClearableCookieStorage()
         val coordinator = createCoordinator(api, cookieStorage)
-        val repository = DefaultAuthRepository(api, coordinator)
+        val repository = AuthRepositoryImpl(api, coordinator)
 
         val response = repository.login("test@example.com", "secret")
 
@@ -53,7 +49,7 @@ class DefaultAuthRepositoryTest {
         val api = FakeAuthApi().apply {
             sessionResult = ApiResult.Success(sessionResponse("session@example.com"))
         }
-        val repository = DefaultAuthRepository(api, createCoordinator(api, ClearableCookieStorage()))
+        val repository = AuthRepositoryImpl(api, createCoordinator(api, ClearableCookieStorage()))
 
         val user = repository.currentSessionUser()
 
@@ -70,7 +66,7 @@ class DefaultAuthRepositoryTest {
             Cookie(name = "access_token", value = "cookie"),
         )
         val coordinator = createCoordinator(api, cookieStorage)
-        val repository = DefaultAuthRepository(api, coordinator)
+        val repository = AuthRepositoryImpl(api, coordinator)
 
         repository.logout()
 
@@ -83,7 +79,7 @@ class DefaultAuthRepositoryTest {
     fun logout_clearsCookiesWhenServerLogoutFails() = runBlocking {
         val api = FakeAuthApi().apply { logoutThrowable = IllegalStateException("server failed") }
         val coordinator = createCoordinator(api, ClearableCookieStorage())
-        val repository = DefaultAuthRepository(api, coordinator)
+        val repository = AuthRepositoryImpl(api, coordinator)
 
         assertFailsWith<IllegalStateException> {
             repository.logout()

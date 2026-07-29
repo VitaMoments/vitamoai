@@ -9,7 +9,7 @@ class UserContextLoader(
     private val contextProvider: UserContextProvider,
 ) {
     suspend fun load(
-        currentUserId: Uuid?,
+        currentUserId: Uuid,
         targetUser: UserRecord,
     ): UserWithContext {
         val context = contextProvider.resolve(
@@ -23,7 +23,7 @@ class UserContextLoader(
     }
 
     suspend fun loadAll(
-        currentUserId: Uuid?,
+        currentUserId: Uuid,
         targetUsers: List<UserRecord>,
     ): List<UserWithContext> =
         targetUsers.map { targetUser ->

@@ -30,6 +30,10 @@ private val drawerDestinations = listOf(
         title = "Home",
         destination = MainDestination.Home,
     ),
+    DrawerDestination(
+        title = "Profile",
+        destination = MainDestination.Profile
+    )
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -123,9 +127,11 @@ fun AppScaffold(
 private fun MainDestination.drawerRoot(): MainDestination =
     when (this) {
         MainDestination.Home -> MainDestination.Home
+        MainDestination.Profile -> MainDestination.Profile
     }
 
 private fun MainDestination.navigationTitle(): String =
     when (this) {
         MainDestination.Home -> "Home"
+        MainDestination.Profile -> "Profile"
     }

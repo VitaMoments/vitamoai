@@ -1,0 +1,475 @@
+package eu.vitamo.app.ui.user.profile
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import eu.vitamo.app.api.contracts.user.AuthenticatedUser
+import eu.vitamo.app.api.contracts.user.PublicUser
+import eu.vitamo.app.api.contracts.user.User
+import eu.vitamo.app.api.contracts.user.UserWithContext
+import kotlinx.datetime.LocalDate
+
+@Composable
+fun ProfileContent(
+    state: ProfileState,
+    snackbarHostState: SnackbarHostState,
+    onBackClicked: () -> Unit,
+    onRetryClicked: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Scaffold(
+        modifier = modifier,
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = state.profile
+                            ?.user
+                            ?.displayName
+                            ?: "Profiel",
+                    )
+                },
+                navigationIcon = {
+                    TextButton(
+                        onClick = onBackClicked,
+                    ) {
+                        Text(
+                            text = "Terug",
+                        )
+                    }
+                },
+            )
+        },
+        snackbarHost = {
+            SnackbarHost(
+                hostState = snackbarHostState,
+            )
+        },
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+        ) {
+            when {
+                state.isLoading && state.profile == null -> {
+                    ProfileLoadingContent(
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+
+                state.profile != null -> {
+                    LoadedProfileContent(
+                        profile = state.profile,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+
+                else -> {
+                    ProfileErrorContent(
+                        message = state.errorMessage
+                            ?: "Het profiel kon niet worden geladen.",
+                        onRetryClicked = onRetryClicked,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+            }
+
+            if (state.isRefreshing) {
+                LinearProgressIndicator(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.TopCenter),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun LoadedProfileContent(
+    profile: UserWithContext,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .verticalScroll(
+                state = rememberScrollState(),
+            )
+            .padding(
+                horizontal = 20.dp,
+                vertical = 24.dp,
+            ),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        ProfileHeader(
+            user = profile.user,
+        )
+
+        Spacer(
+            modifier = Modifier.height(24.dp),
+        )
+
+        ProfileInformationCard(
+            user = profile.user,
+        )
+    }
+}
+
+@Composable
+private fun ProfileHeader(
+    user: User,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        ProfileAvatar(
+            user = user,
+        )
+
+        Spacer(
+            modifier = Modifier.height(16.dp),
+        )
+
+        Text(
+            text = user.displayName,
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+        )
+
+        val alias = (user as? AuthenticatedUser)
+            ?.alias
+            ?.trim()
+            ?.takeIf(String::isNotEmpty)
+
+        if (alias != null) {
+            Spacer(
+                modifier = Modifier.height(4.dp),
+            )
+
+            Text(
+                text = "@$alias",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+        }
+
+        val bio = user.bio
+            ?.trim()
+            ?.takeIf(String::isNotEmpty)
+
+        if (bio != null) {
+            Spacer(
+                modifier = Modifier.height(12.dp),
+            )
+
+            Text(
+                text = bio,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ProfileAvatar(
+    user: User,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.size(96.dp),
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.primaryContainer,
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = user.initials(),
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                fontWeight = FontWeight.Bold,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ProfileInformationCard(
+    user: User,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        ),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+        ) {
+            Text(
+                text = when (user) {
+                    is AuthenticatedUser -> "Jouw gegevens"
+                    is PublicUser -> "Profielgegevens"
+                },
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+            )
+
+            Spacer(
+                modifier = Modifier.height(16.dp),
+            )
+
+            ProfileInfoRow(
+                label = "Weergavenaam",
+                value = user.displayName,
+            )
+
+            ProfileDivider()
+
+            ProfileInfoRow(
+                label = "Rol",
+                value = user.role.toString(),
+            )
+
+            when (user) {
+                is AuthenticatedUser -> {
+                    AuthenticatedProfileInformation(
+                        user = user,
+                    )
+                }
+
+                is PublicUser -> Unit
+            }
+        }
+    }
+}
+
+@Composable
+private fun AuthenticatedProfileInformation(
+    user: AuthenticatedUser,
+) {
+    val fullName = listOfNotNull(
+        user.firstName
+            ?.trim()
+            ?.takeIf(String::isNotEmpty),
+        user.lastName
+            ?.trim()
+            ?.takeIf(String::isNotEmpty),
+    )
+        .joinToString(separator = " ")
+        .takeIf(String::isNotBlank)
+
+    if (fullName != null) {
+        ProfileDivider()
+
+        ProfileInfoRow(
+            label = "Volledige naam",
+            value = fullName,
+        )
+    }
+
+    val alias = user.alias
+        ?.trim()
+        ?.takeIf(String::isNotEmpty)
+
+    if (alias != null) {
+        ProfileDivider()
+
+        ProfileInfoRow(
+            label = "Gebruikersnaam",
+            value = "@$alias",
+        )
+    }
+
+    if (user.email.isNotBlank()) {
+        ProfileDivider()
+
+        ProfileInfoRow(
+            label = "E-mailadres",
+            value = user.email,
+        )
+    }
+
+    if (user.birthDate != null) {
+        ProfileDivider()
+
+        ProfileInfoRow(
+            label = "Geboortedatum",
+            value = user.birthDate!!.toDisplayString(),
+        )
+    }
+}
+
+@Composable
+private fun ProfileInfoRow(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Column(
+            modifier = Modifier.weight(1f),
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
+            Spacer(
+                modifier = Modifier.height(4.dp),
+            )
+
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ProfileDivider() {
+    HorizontalDivider(
+        modifier = Modifier.padding(
+            vertical = 12.dp,
+        ),
+    )
+}
+
+@Composable
+private fun ProfileLoadingContent(
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center,
+    ) {
+        CircularProgressIndicator()
+    }
+}
+
+@Composable
+private fun ProfileErrorContent(
+    message: String,
+    onRetryClicked: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text(
+            text = "Profiel niet beschikbaar",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+        )
+
+        Spacer(
+            modifier = Modifier.height(12.dp),
+        )
+
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+
+        Spacer(
+            modifier = Modifier.height(24.dp),
+        )
+
+        Button(
+            onClick = onRetryClicked,
+        ) {
+            Text(
+                text = "Opnieuw proberen",
+            )
+        }
+    }
+}
+
+private fun User.initials(): String {
+    return displayName
+        .trim()
+        .split(Regex("\\s+"))
+        .filter(String::isNotBlank)
+        .take(2)
+        .mapNotNull { namePart ->
+            namePart
+                .firstOrNull()
+                ?.uppercase()
+        }
+        .joinToString(separator = "")
+        .ifBlank {
+            "?"
+        }
+}
+
+private fun LocalDate.toDisplayString(): String {
+    val day = dayOfMonth
+        .toString()
+        .padStart(
+            length = 2,
+            padChar = '0',
+        )
+
+    val month = monthNumber
+        .toString()
+        .padStart(
+            length = 2,
+            padChar = '0',
+        )
+
+    return "$day-$month-$year"
+}

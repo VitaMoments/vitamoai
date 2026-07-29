@@ -38,7 +38,6 @@ val authModule = module {
     single<PasswordHashService> { BCryptPasswordHashService() }
     single<RefreshTokenService> { RefreshTokenService(get()) }
 
-    single<UserRepository> { UserRepositoryImpl() }
     single<EmailVerificationChallengeRepository> { ExposedEmailVerificationChallengeRepository() }
     single<PasswordResetTokenRepository> { ExposedPasswordResetTokenRepository() }
 

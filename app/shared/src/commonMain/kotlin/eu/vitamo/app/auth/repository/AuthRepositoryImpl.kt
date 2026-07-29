@@ -16,7 +16,7 @@ import eu.vitamo.app.mapper.toRepositoryResult
 import eu.vitamo.app.network.auth.AuthSessionCoordinator
 import eu.vitamo.app.repository.RepositoryResult
 
-class DefaultAuthRepository(
+class AuthRepositoryImpl(
     private val authApi: AuthApi,
     private val authSessionCoordinator: AuthSessionCoordinator,
 ) : AuthRepository {

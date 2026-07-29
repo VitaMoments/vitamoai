@@ -12,7 +12,7 @@ class GetUserUseCase(
     private val userContextLoader: UserContextLoader,
 ) {
     suspend operator fun invoke(
-        currentUserId: Uuid?,
+        currentUserId: Uuid,
         userId: Uuid,
     ): RepositoryResult<UserWithContext> =
         userRepository.findById(userId)

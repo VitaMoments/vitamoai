@@ -5,12 +5,12 @@ import kotlin.uuid.Uuid
 
 interface UserContextProvider {
     suspend fun resolve(
-        currentUserId: Uuid?,
+        currentUserId: Uuid,
         targetUser: UserRecord,
     ): UserContext
 
     suspend fun resolveAll(
-        currentUserId: Uuid?,
+        currentUserId: Uuid,
         targetUsers: List<UserRecord>,
     ): Map<Uuid, UserContext>
 }

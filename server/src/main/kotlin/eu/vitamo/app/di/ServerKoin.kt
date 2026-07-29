@@ -3,6 +3,7 @@ package eu.vitamo.app.di
 import eu.vitamo.app.features.auth.di.authModule
 import eu.vitamo.app.database.DatabaseFactory
 import eu.vitamo.app.database.databaseModule
+import eu.vitamo.app.features.user.di.userModule
 import eu.vitamo.app.mail.di.mailModule
 import eu.vitamo.app.sayHello
 import org.koin.core.context.GlobalContext
@@ -25,7 +26,7 @@ fun initServerKoin() {
     }
 
     startKoin {
-        modules(serverModule, databaseModule, authModule, mailModule)
+        modules(serverModule, databaseModule, authModule, mailModule, userModule)
     }
 
     val skipDbInit = System.getProperty(SKIP_DB_INIT_PROPERTY)?.toBooleanStrictOrNull() == true

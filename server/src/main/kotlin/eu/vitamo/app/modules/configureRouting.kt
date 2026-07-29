@@ -1,6 +1,7 @@
 package eu.vitamo.app.modules
 
 import eu.vitamo.app.features.auth.routes.authRoutes
+import eu.vitamo.app.features.user.routes.userRoutes
 import io.ktor.server.application.Application
 import io.ktor.server.application.log
 import io.ktor.server.auth.authenticate
@@ -31,9 +32,7 @@ private fun Routing.apiRoutes() {
         authRoutes()
 
         authenticate("cookie-jwt-authentication") {
-            route("/v1") {
-
-            }
+            userRoutes()
         }
     }
 }

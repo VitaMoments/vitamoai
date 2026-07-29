@@ -6,6 +6,12 @@ import eu.vitamo.app.repository.FieldError
 import eu.vitamo.app.repository.RepositoryError
 import eu.vitamo.app.repository.RepositoryResult
 
+fun <T> ApiResult<T>.toRepositoryResult(): RepositoryResult<T> {
+    return toRepositoryResult { value ->
+        value
+    }
+}
+
 inline fun <ApiModel, DomainModel> ApiResult<ApiModel>.toRepositoryResult(
     mapper: (ApiModel) -> DomainModel,
 ): RepositoryResult<DomainModel> =

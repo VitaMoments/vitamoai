@@ -5,8 +5,13 @@ import eu.vitamo.app.auth.api.AuthApi
 import eu.vitamo.app.auth.api.AuthApiConfig
 import eu.vitamo.app.auth.api.KtorAuthApi
 import eu.vitamo.app.auth.repository.AuthRepository
-import eu.vitamo.app.auth.repository.DefaultAuthRepository
+import eu.vitamo.app.auth.repository.AuthRepositoryImpl
 import eu.vitamo.app.di.modules.uiKoinModules
+import eu.vitamo.app.features.user.api.UserApi
+import eu.vitamo.app.features.user.api.UserApiConfig
+import eu.vitamo.app.features.user.api.UserApiImpl
+import eu.vitamo.app.features.user.repository.UserRepository
+import eu.vitamo.app.features.user.repository.UserRepositoryImpl
 import eu.vitamo.app.network.AuthCookieStorage
 import eu.vitamo.app.network.auth.AuthSessionCoordinator
 import eu.vitamo.app.network.auth.PersistentCookieStorage
@@ -20,12 +25,17 @@ import org.koin.dsl.module
 private var koinStarted = false
 
 internal val sharedAppModule: Module = module {
-    single { AuthApiConfig() }
-    single<AuthCookieStorage> { PersistentCookieStorage(createAuthCookiePersistence()) }
     single<HttpClient> { createAppHttpClient(get()) }
-    single<AuthApi> { KtorAuthApi(get(), get()) }
+
+    single<AuthCookieStorage> { PersistentCookieStorage(createAuthCookiePersistence()) }
     single { AuthSessionCoordinator(get(), get(), get()) }
-    single<AuthRepository> { DefaultAuthRepository(get(), get()) }
+    single { AuthApiConfig() }
+    single<AuthApi> { KtorAuthApi(get(), get()) }
+    single<AuthRepository> { AuthRepositoryImpl(get(), get()) }
+
+    single { UserApiConfig() }
+    single<UserApi> { UserApiImpl(get(), get(), get()) }
+    single<UserRepository> { UserRepositoryImpl(get()) }
 }
 
 fun initKoin() {

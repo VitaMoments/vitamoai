@@ -1,13 +1,12 @@
 package eu.vitamo.app.features.user.context
 
 import eu.vitamo.app.features.user.model.UserRecord
-import eu.vitamo.app.repository.RepositoryResult
 import kotlin.uuid.Uuid
 
 class UserContextProviderImpl : UserContextProvider {
 
     override suspend fun resolve(
-        currentUserId: Uuid?,
+        currentUserId: Uuid,
         targetUser: UserRecord,
     ): UserContext =
          createContext(
@@ -15,7 +14,7 @@ class UserContextProviderImpl : UserContextProvider {
             user = targetUser,)
 
     override suspend fun resolveAll(
-        currentUserId: Uuid?,
+        currentUserId: Uuid,
         targetUsers: List<UserRecord>,
     ): Map<Uuid, UserContext> =
         targetUsers.associate { user ->
@@ -27,7 +26,7 @@ class UserContextProviderImpl : UserContextProvider {
 
 
     private fun createContext(
-        currentUserId: Uuid?,
+        currentUserId: Uuid,
         user: UserRecord,
     ): UserContext {
         val accessLevel =

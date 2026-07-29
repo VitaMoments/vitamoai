@@ -21,6 +21,7 @@ import eu.vitamo.app.ui.auth.password_recovery.reset_password.ResetPasswordScree
 import eu.vitamo.app.ui.auth.registration.RegistrationScreen
 import eu.vitamo.app.ui.auth.verification.VerificationScreen
 import eu.vitamo.app.ui.home.HomeScreen
+import eu.vitamo.app.ui.user.profile.ProfileScreen
 
 @Composable
 fun NavigationRoot(
@@ -66,6 +67,18 @@ fun NavigationRoot(
                         entry<MainDestination.Home> {
                             HomeScreen()
                         }
+
+                        entry<MainDestination.Profile> {
+                            ProfileScreen(
+                                onBackClicked = {
+                                    backStack.setRoot(
+                                        MainDestination.Home,
+                                    )
+                                }
+                            )
+                        }
+
+
 
                         /*
                          * Auth destinations zitten bewust in dezelfde

@@ -11,4 +11,10 @@ sealed interface MainDestination : AppDestination {
         override val route = "home"
         override val title = "Home"
     }
+
+    @Serializable
+    data object Profile : MainDestination {
+        override val route = "profile"
+        override val title = "Profile"
+    }
 }

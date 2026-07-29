@@ -1,5 +1,7 @@
 package eu.vitamo.app.features.user.routes
 
+import eu.vitamo.app.exception.ApiException
+import eu.vitamo.app.features.user.usecase.GetUserUseCase
 import eu.vitamo.app.features.user.usecase.SearchUsersUseCase
 import eu.vitamo.app.infrastructure.network.helpers.getPaginationParameters
 import eu.vitamo.app.infrastructure.network.helpers.getQueryParameter
@@ -10,9 +12,11 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import org.koin.ktor.ext.inject
+import kotlin.uuid.Uuid
 
 fun Route.userRoutes() {
     val searchUsersUseCase: SearchUsersUseCase by inject()
+    val getUserUseCase: GetUserUseCase by inject()
 
     route("/users") {
         get() {
@@ -22,6 +26,34 @@ fun Route.userRoutes() {
 
             val result = searchUsersUseCase(currentUserId, query, limit, offset.toLong())
 
+            call.handleResult(result)
+        }
+
+        get("/{userId}") {
+            val currentUserId = call.requireUserId()
+
+            val userId = call.parameters["userId"]
+                ?.let { value ->
+                    runCatching { Uuid.parse(value) }.getOrNull()
+                }
+                ?: throw ApiException.BadRequest(
+                    message = "Invalid or missing userId.",
+                )
+
+            val result = getUserUseCase(
+                currentUserId = currentUserId,
+                userId = userId,
+            )
+
+            call.handleResult(result)
+        }
+
+        get("/me") {
+            val currentUserId = call.requireUserId()
+            val result = getUserUseCase(
+                currentUserId = currentUserId,
+                userId = currentUserId
+            )
             call.handleResult(result)
         }
     }
