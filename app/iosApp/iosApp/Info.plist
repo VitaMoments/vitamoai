@@ -4,5 +4,7 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+    <string>VitaMo gebruikt de camera zodat je een fotos kunt maken.</string>
 </dict>
 </plist>

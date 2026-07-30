@@ -21,9 +21,10 @@ class VerifyEmailUseCase(
         val user = userRepository.findByEmail(email)
             ?: throw invalidCode()
 
+//        for now, verifying email is done on register. so profile image is always null
         if (user.emailVerifiedAt != null) {
             return VerifyEmailResponse(
-                user = user.toAuthenticatedUser(),
+                user = user.toAuthenticatedUser(null),
                 message = "Email already verified.",
                 verified = true,
             )
@@ -51,8 +52,9 @@ class VerifyEmailUseCase(
         challengeRepository.markConsumed(challenge.id, now)
         userRepository.markEmailVerified(user.id, now, now.epochSeconds)
 
+//        for now, verifying email is done on register. so profile image is always null
         return VerifyEmailResponse(
-            user = user.toAuthenticatedUser(),
+            user = user.toAuthenticatedUser(null),
             message = "Email verified successfully.",
             verified = true,
         )

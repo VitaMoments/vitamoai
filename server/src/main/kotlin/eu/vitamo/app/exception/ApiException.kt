@@ -1,6 +1,6 @@
 package eu.vitamo.app.exception
 
-import eu.vitamo.app.api.contracts.common.ApiErrorCode
+import eu.vitamo.app.api.contracts.errorcodes.ApiErrorCode
 import eu.vitamo.app.api.result.ErrorCode
 import io.ktor.http.HttpStatusCode
 

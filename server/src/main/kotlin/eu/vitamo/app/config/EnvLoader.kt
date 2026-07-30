@@ -23,19 +23,6 @@ object EnvLoader {
         }
     }
 
-    fun read(
-        key: String,
-        environment: Map<String, String> = System.getenv(),
-        systemProperties: Properties = System.getProperties(),
-    ): String? {
-        return environment[key]
-            ?.takeIf { it.isNotBlank() }
-            ?: systemProperties.getProperty(key)
-                ?.takeIf { it.isNotBlank() }
-            ?: dotEnvValues[key]
-                ?.takeIf { it.isNotBlank() }
-    }
-
     private fun findDotEnvPath(): Path? {
         var current: Path? = Path.of(System.getProperty("user.dir")).toAbsolutePath()
 
@@ -70,5 +57,61 @@ object EnvLoader {
             }
             .filter { (key, _) -> key.isNotBlank() }
             .toMap()
+    }
+
+    private fun read(
+        key: String,
+        environment: Map<String, String> = System.getenv(),
+        systemProperties: Properties = System.getProperties(),
+    ): String? {
+        return environment[key]
+            ?.takeIf { it.isNotBlank() }
+            ?: systemProperties.getProperty(key)
+                ?.takeIf { it.isNotBlank() }
+            ?: dotEnvValues[key]
+                ?.takeIf { it.isNotBlank() }
+    }
+
+    fun readRequired(
+        key: String,
+        environment: Map<String, String>,
+        systemProperties: Properties,
+        customError: Throwable? = null,
+    ): String {
+        val value = readOptional(
+            key = key,
+            environment = environment,
+            systemProperties = systemProperties,
+            defaultValue = "",
+        )
+        if (value.isBlank()) {
+            throw customError
+                ?: IllegalStateException("Missing required config value: $key")
+        }
+        return value
+    }
+
+    fun readOptional(
+        key: String,
+        environment: Map<String, String>,
+        systemProperties: Properties,
+        defaultValue: String,
+    ): String {
+        return read(
+            key = key,
+            environment = environment,
+            systemProperties = systemProperties,
+        )
+            ?.trim()
+            ?.takeIf { it.isNotBlank() }
+            ?: defaultValue
+    }
+
+    fun readOrNull(
+        key: String,
+        environment: Map<String, String>,
+        systemProperties: Properties
+    ) : String? {
+        return read(key = key, environment = environment, systemProperties = systemProperties)
     }
 }

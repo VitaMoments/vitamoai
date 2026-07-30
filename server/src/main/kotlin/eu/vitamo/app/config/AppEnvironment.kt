@@ -18,7 +18,7 @@ object AppEnvironmentLoader {
     ): AppEnvironment {
         val rawValue = listOf(VITAMO_ENV, APP_ENV, KTOR_ENV)
             .firstNotNullOfOrNull { key ->
-                EnvLoader.read(key = key, environment = environment, systemProperties = systemProperties)
+                EnvLoader.readOrNull(key = key, environment = environment, systemProperties = systemProperties)
             }
             .orEmpty()
 

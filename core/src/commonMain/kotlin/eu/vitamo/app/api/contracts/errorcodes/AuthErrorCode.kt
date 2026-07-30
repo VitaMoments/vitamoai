@@ -1,4 +1,4 @@
-package eu.vitamo.app.api.contracts.auth
+package eu.vitamo.app.api.contracts.errorcodes
 
 import eu.vitamo.app.api.result.ErrorCode
 import eu.vitamo.app.api.result.ErrorCodeDefinition

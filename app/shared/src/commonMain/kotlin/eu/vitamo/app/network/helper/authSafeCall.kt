@@ -1,6 +1,6 @@
 package eu.vitamo.app.network.helper
 
-import eu.vitamo.app.api.contracts.auth.AuthErrorCode
+import eu.vitamo.app.api.contracts.errorcodes.AuthErrorCode
 import eu.vitamo.app.api.result.ApiFailure
 import eu.vitamo.app.api.result.ApiResult
 import eu.vitamo.app.network.auth.AuthSessionCoordinator

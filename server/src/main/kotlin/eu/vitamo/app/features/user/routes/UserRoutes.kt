@@ -1,6 +1,8 @@
 package eu.vitamo.app.features.user.routes
 
 import eu.vitamo.app.exception.ApiException
+import eu.vitamo.app.features.media.usecase.UpdateProfileImageUseCase
+import eu.vitamo.app.features.user.routes.helper.receiveProfileImageUpload
 import eu.vitamo.app.features.user.usecase.GetUserUseCase
 import eu.vitamo.app.features.user.usecase.SearchUsersUseCase
 import eu.vitamo.app.infrastructure.network.helpers.getPaginationParameters
@@ -8,8 +10,12 @@ import eu.vitamo.app.infrastructure.network.helpers.getQueryParameter
 import eu.vitamo.app.infrastructure.network.helpers.handleResult
 import eu.vitamo.app.infrastructure.network.helpers.requireQueryParameter
 import eu.vitamo.app.infrastructure.network.helpers.requireUserId
+import eu.vitamo.app.infrastructure.network.helpers.respondRepositoryError
+import eu.vitamo.app.repository.RepositoryResult
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
+import io.ktor.server.routing.post
+import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import org.koin.ktor.ext.inject
 import kotlin.uuid.Uuid
@@ -17,6 +23,7 @@ import kotlin.uuid.Uuid
 fun Route.userRoutes() {
     val searchUsersUseCase: SearchUsersUseCase by inject()
     val getUserUseCase: GetUserUseCase by inject()
+    val updateProfileImageUseCase: UpdateProfileImageUseCase by inject()
 
     route("/users") {
         get() {
@@ -55,6 +62,30 @@ fun Route.userRoutes() {
                 userId = currentUserId
             )
             call.handleResult(result)
+        }
+
+        put("/me/profile-image") {
+            val currentUserId = call.requireUserId()
+
+            when (
+                val uploadResult =
+                    call.receiveProfileImageUpload()
+            ) {
+                is RepositoryResult.Success -> {
+                    call.handleResult(
+                        result = updateProfileImageUseCase(
+                            currentUserId = currentUserId,
+                            source = uploadResult.data.temporaryFile,
+                        ),
+                    )
+                }
+
+                is RepositoryResult.Error -> {
+                    call.respondRepositoryError(
+                        error = uploadResult.error,
+                    )
+                }
+            }
         }
     }
 }

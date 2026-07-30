@@ -1,5 +1,7 @@
 package eu.vitamo.app.config
 
+import eu.vitamo.app.config.EnvLoader.readOptional
+import eu.vitamo.app.config.EnvLoader.readRequired
 import java.util.Properties
 
 object JWTConfigLoader {
@@ -19,6 +21,7 @@ object JWTConfigLoader {
             key = JWT_ISSUER,
             environment = environment,
             systemProperties = systemProperties,
+            customError = IllegalStateException("$JWT_ISSUER not found in .env file")
         )
 
         val audience = readRequired(
@@ -73,36 +76,5 @@ object JWTConfigLoader {
             accessTokenExpirationSeconds = accessExpiration,
             refreshTokenExpirationSeconds = refreshExpiration,
         )
-    }
-
-    private fun readRequired(
-        key: String,
-        environment: Map<String, String>,
-        systemProperties: Properties,
-    ): String {
-        return readOptional(
-            key = key,
-            environment = environment,
-            systemProperties = systemProperties,
-            defaultValue = "",
-        ).ifBlank {
-            error("Missing required JWT config value: $key")
-        }
-    }
-
-    private fun readOptional(
-        key: String,
-        environment: Map<String, String>,
-        systemProperties: Properties,
-        defaultValue: String,
-    ): String {
-        return EnvLoader.read(
-            key = key,
-            environment = environment,
-            systemProperties = systemProperties,
-        )
-            ?.trim()
-            ?.takeIf { it.isNotBlank() }
-            ?: defaultValue
     }
 }

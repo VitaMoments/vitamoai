@@ -67,7 +67,7 @@ class LoginUseCase(
         )
 
         return LoginSession(
-            user = user.toAuthenticatedUser(),
+            user = user.toAuthenticatedUser(null),
             accessToken = accessToken,
             refreshToken = refreshToken,
         )

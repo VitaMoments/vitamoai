@@ -19,4 +19,5 @@ data class UserRecord(
     val updatedAt: Instant,
     val emailVerifiedAt: Instant?,
     val deletedAt: Instant?,
+    val profileImageId: Uuid?
 )

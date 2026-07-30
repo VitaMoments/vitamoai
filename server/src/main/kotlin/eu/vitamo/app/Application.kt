@@ -2,6 +2,7 @@ package eu.vitamo.app
 
 import eu.vitamo.app.modules.configureHTTP
 import eu.vitamo.app.modules.configureKoin
+import eu.vitamo.app.modules.configureMediaResponses
 import eu.vitamo.app.modules.configureSecurity
 import eu.vitamo.app.modules.configureSerialization
 import eu.vitamo.app.modules.configureStatusPages
@@ -22,4 +23,5 @@ fun Application.module() {
     configureStatusPages()
     configureSecurity()
     configureRouting()
+    configureMediaResponses()
 }

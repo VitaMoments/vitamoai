@@ -1,14 +1,13 @@
 package eu.vitamo.app.ui.user.profile
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -17,108 +16,89 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import coil3.ImageLoader
+import coil3.compose.AsyncImage
 import eu.vitamo.app.api.contracts.user.AuthenticatedUser
 import eu.vitamo.app.api.contracts.user.PublicUser
 import eu.vitamo.app.api.contracts.user.User
-import eu.vitamo.app.api.contracts.user.UserWithContext
 import kotlinx.datetime.LocalDate
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileContent(
     state: ProfileState,
-    snackbarHostState: SnackbarHostState,
-    onBackClicked: () -> Unit,
+    profileImageUrl: String?,
+    imageLoader: ImageLoader,
     onRetryClicked: () -> Unit,
+    onChangeProfileImageClicked: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = state.profile
-                            ?.user
-                            ?.displayName
-                            ?: "Profiel",
-                    )
-                },
-                navigationIcon = {
-                    TextButton(
-                        onClick = onBackClicked,
-                    ) {
-                        Text(
-                            text = "Terug",
-                        )
-                    }
-                },
-            )
-        },
-        snackbarHost = {
-            SnackbarHost(
-                hostState = snackbarHostState,
-            )
-        },
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-        ) {
-            when {
-                state.isLoading && state.profile == null -> {
-                    ProfileLoadingContent(
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                }
-
-                state.profile != null -> {
-                    LoadedProfileContent(
-                        profile = state.profile,
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                }
-
-                else -> {
-                    ProfileErrorContent(
-                        message = state.errorMessage
-                            ?: "Het profiel kon niet worden geladen.",
-                        onRetryClicked = onRetryClicked,
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                }
-            }
-
-            if (state.isRefreshing) {
-                LinearProgressIndicator(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.TopCenter),
+    Column( modifier = modifier
+        .fillMaxSize()
+        .safeContentPadding()) {
+        when {
+            state.isLoading && state.profile == null -> {
+                ProfileLoadingContent(
+                    modifier = Modifier.fillMaxSize(),
                 )
             }
+
+            state.profile != null -> {
+                LoadedProfileContent(
+                    user = state.profile.user,
+                    profileImageUrl = profileImageUrl,
+                    imageLoader = imageLoader,
+                    isProfileImageUploading =
+                        state.isProfileImageUploading,
+                    onChangeProfileImageClicked =
+                        onChangeProfileImageClicked,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+
+            else -> {
+                ProfileErrorContent(
+                    message = state.errorMessage
+                        ?: "Het profiel kon niet worden geladen.",
+                    onRetryClicked = onRetryClicked,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+        }
+
+        if (state.isRefreshing) {
+            LinearProgressIndicator(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.CenterHorizontally),
+            )
         }
     }
 }
 
+
 @Composable
 private fun LoadedProfileContent(
-    profile: UserWithContext,
+    user: User,
+    profileImageUrl: String?,
+    imageLoader: ImageLoader,
+    isProfileImageUploading: Boolean,
+    onChangeProfileImageClicked: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -133,7 +113,13 @@ private fun LoadedProfileContent(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         ProfileHeader(
-            user = profile.user,
+            user = user,
+            profileImageUrl = profileImageUrl,
+            imageLoader = imageLoader,
+            isProfileImageUploading =
+                isProfileImageUploading,
+            onChangeProfileImageClicked =
+                onChangeProfileImageClicked,
         )
 
         Spacer(
@@ -141,7 +127,7 @@ private fun LoadedProfileContent(
         )
 
         ProfileInformationCard(
-            user = profile.user,
+            user = user,
         )
     }
 }
@@ -149,6 +135,10 @@ private fun LoadedProfileContent(
 @Composable
 private fun ProfileHeader(
     user: User,
+    profileImageUrl: String?,
+    imageLoader: ImageLoader,
+    isProfileImageUploading: Boolean,
+    onChangeProfileImageClicked: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -157,7 +147,40 @@ private fun ProfileHeader(
     ) {
         ProfileAvatar(
             user = user,
+            profileImageUrl = profileImageUrl,
+            imageLoader = imageLoader,
+            isUploading = isProfileImageUploading,
         )
+
+        if (user is AuthenticatedUser) {
+            Spacer(
+                modifier = Modifier.height(12.dp),
+            )
+
+            Button(
+                onClick = onChangeProfileImageClicked,
+                enabled = !isProfileImageUploading,
+            ) {
+                if (isProfileImageUploading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp,
+                    )
+
+                    Spacer(
+                        modifier = Modifier.size(8.dp),
+                    )
+                }
+
+                Text(
+                    text = if (isProfileImageUploading) {
+                        "Profielfoto uploaden…"
+                    } else {
+                        "Profielfoto wijzigen"
+                    },
+                )
+            }
+        }
 
         Spacer(
             modifier = Modifier.height(16.dp),
@@ -183,7 +206,8 @@ private fun ProfileHeader(
             Text(
                 text = "@$alias",
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color =
+                    MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
             )
         }
@@ -200,7 +224,8 @@ private fun ProfileHeader(
             Text(
                 text = bio,
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color =
+                    MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
             )
         }
@@ -210,10 +235,65 @@ private fun ProfileHeader(
 @Composable
 private fun ProfileAvatar(
     user: User,
+    profileImageUrl: String?,
+    imageLoader: ImageLoader,
+    isUploading: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier.size(112.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        ProfileInitialsAvatar(
+            user = user,
+            modifier = Modifier.fillMaxSize(),
+        )
+
+        if (profileImageUrl != null) {
+            AsyncImage(
+                model = profileImageUrl,
+                imageLoader = imageLoader,
+                contentDescription =
+                    "Profielfoto van ${user.displayName}",
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop,
+            )
+        }
+
+        if (isUploading) {
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                shape = CircleShape,
+                color = MaterialTheme
+                    .colorScheme
+                    .scrim
+                    .copy(alpha = 0.45f),
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(32.dp),
+                        color = MaterialTheme
+                            .colorScheme
+                            .onPrimary,
+                        strokeWidth = 3.dp,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProfileInitialsAvatar(
+    user: User,
     modifier: Modifier = Modifier,
 ) {
     Surface(
-        modifier = modifier.size(96.dp),
+        modifier = modifier,
         shape = CircleShape,
         color = MaterialTheme.colorScheme.primaryContainer,
     ) {
@@ -223,7 +303,8 @@ private fun ProfileAvatar(
             Text(
                 text = user.initials(),
                 style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                color =
+                    MaterialTheme.colorScheme.onPrimaryContainer,
                 fontWeight = FontWeight.Bold,
             )
         }
@@ -238,7 +319,8 @@ private fun ProfileInformationCard(
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            containerColor =
+                MaterialTheme.colorScheme.surfaceVariant,
         ),
     ) {
         Column(
@@ -259,26 +341,22 @@ private fun ProfileInformationCard(
                 modifier = Modifier.height(16.dp),
             )
 
-            ProfileInfoRow(
+            ProfileInfoItem(
                 label = "Weergavenaam",
                 value = user.displayName,
             )
 
             ProfileDivider()
 
-            ProfileInfoRow(
+            ProfileInfoItem(
                 label = "Rol",
                 value = user.role.toString(),
             )
 
-            when (user) {
-                is AuthenticatedUser -> {
-                    AuthenticatedProfileInformation(
-                        user = user,
-                    )
-                }
-
-                is PublicUser -> Unit
+            if (user is AuthenticatedUser) {
+                AuthenticatedProfileInformation(
+                    user = user,
+                )
             }
         }
     }
@@ -302,7 +380,7 @@ private fun AuthenticatedProfileInformation(
     if (fullName != null) {
         ProfileDivider()
 
-        ProfileInfoRow(
+        ProfileInfoItem(
             label = "Volledige naam",
             value = fullName,
         )
@@ -315,7 +393,7 @@ private fun AuthenticatedProfileInformation(
     if (alias != null) {
         ProfileDivider()
 
-        ProfileInfoRow(
+        ProfileInfoItem(
             label = "Gebruikersnaam",
             value = "@$alias",
         )
@@ -324,54 +402,49 @@ private fun AuthenticatedProfileInformation(
     if (user.email.isNotBlank()) {
         ProfileDivider()
 
-        ProfileInfoRow(
+        ProfileInfoItem(
             label = "E-mailadres",
             value = user.email,
         )
     }
 
-    if (user.birthDate != null) {
+    user.birthDate?.let { birthDate ->
         ProfileDivider()
 
-        ProfileInfoRow(
+        ProfileInfoItem(
             label = "Geboortedatum",
-            value = user.birthDate!!.toDisplayString(),
+            value = birthDate.toDisplayString(),
         )
     }
 }
 
 @Composable
-private fun ProfileInfoRow(
+private fun ProfileInfoItem(
     label: String,
     value: String,
     modifier: Modifier = Modifier,
 ) {
-    Row(
+    Column(
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalAlignment = Alignment.Top,
     ) {
-        Column(
-            modifier = Modifier.weight(1f),
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color =
+                MaterialTheme.colorScheme.onSurfaceVariant,
+        )
 
-            Spacer(
-                modifier = Modifier.height(4.dp),
-            )
+        Spacer(
+            modifier = Modifier.height(4.dp),
+        )
 
-            Text(
-                text = value,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
-            )
-        }
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Medium,
+        )
     }
 }
 
@@ -405,7 +478,8 @@ private fun ProfileErrorContent(
     Column(
         modifier = modifier.padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement =
+            androidx.compose.foundation.layout.Arrangement.Center,
     ) {
         Text(
             text = "Profiel niet beschikbaar",
@@ -421,7 +495,8 @@ private fun ProfileErrorContent(
         Text(
             text = message,
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color =
+                MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
 

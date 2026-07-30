@@ -7,6 +7,7 @@ import eu.vitamo.app.features.user.mapper.searchPredicate
 import eu.vitamo.app.features.user.mapper.toCredentialsRecord
 import eu.vitamo.app.features.user.mapper.toRecord
 import eu.vitamo.app.features.user.mapper.toUserRecord
+import eu.vitamo.app.features.user.model.ProfileImageUpdateRecord
 import eu.vitamo.app.features.user.model.UserCredentialsRecord
 import eu.vitamo.app.features.user.model.UserRecord
 import eu.vitamo.app.features.user.table.UsersTable
@@ -145,6 +146,37 @@ class UserRepositoryImpl: UserRepository {
                 ),
             )
     }
+
+    override suspend fun replaceProfileImage(
+        userId: Uuid,
+        profileImageId: Uuid,
+    ): RepositoryResult<ProfileImageUpdateRecord> = dbQuery {
+        val userEntity = UserEntity.findById(userId)
+            ?: return@dbQuery RepositoryResult.Error(
+                error = RepositoryError.NotFound(
+                    message = "User with id $userId was not found.",
+                ),
+            )
+
+        val previousProfileImageId =
+            userEntity.profileImageId
+
+        userEntity.profileImageId =
+            profileImageId
+
+        userEntity.updatedAt = Clock.System
+            .now()
+            .toEpochMilliseconds()
+
+        RepositoryResult.Success(
+            data = ProfileImageUpdateRecord(
+                user = userEntity.toRecord(),
+                previousProfileImageId =
+                    previousProfileImageId,
+            ),
+        )
+    }
+
 
     override fun markEmailVerified(id: Uuid, emailVerifiedAt: Instant, updatedAt: Long) {
         transaction {

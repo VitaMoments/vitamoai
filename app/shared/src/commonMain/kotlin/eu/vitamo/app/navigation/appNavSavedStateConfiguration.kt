@@ -8,8 +8,12 @@ import kotlinx.serialization.modules.polymorphic
 val appNavSavedStateConfiguration = SavedStateConfiguration {
     serializersModule = SerializersModule {
         polymorphic(NavKey::class) {
+//            ErrorDestinations
+            subclass(ErrorDestination.Unavailable::class, ErrorDestination.Unavailable.serializer())
+
 //            Authenticated destinations
             subclass(MainDestination.Home::class, MainDestination.Home.serializer())
+            subclass(MainDestination.Profile::class, MainDestination.Profile.serializer())
 
 //            Authentication Destinations
             subclass(AuthDestination.Login::class, AuthDestination.Login.serializer())

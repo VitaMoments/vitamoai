@@ -1,5 +1,6 @@
 package eu.vitamo.app.features.user.repository
 
+import eu.vitamo.app.features.user.model.ProfileImageUpdateRecord
 import eu.vitamo.app.features.user.model.UserCredentialsRecord
 import eu.vitamo.app.features.user.model.UserRecord
 import eu.vitamo.app.infrastructure.network.models.Page
@@ -31,7 +32,10 @@ interface UserRepository {
     ): UserRecord
 
     suspend fun findUserWithCredentials(email: String): RepositoryResult<UserCredentialsRecord>
-
+    suspend fun replaceProfileImage(
+        userId: Uuid,
+        profileImageId: Uuid,
+    ): RepositoryResult<ProfileImageUpdateRecord>
     fun markEmailVerified(id: Uuid, emailVerifiedAt: Instant, updatedAt: Long)
     fun updatePassword(userid: Uuid, hashedPassword: String)
 }

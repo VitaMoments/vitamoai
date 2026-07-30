@@ -18,7 +18,7 @@ object SmtpConfigLoader {
     fun loadOrThrow(
         environment: Map<String, String> = System.getenv(),
         systemProperties: Properties = System.getProperties(),
-        valueReader: (String) -> String? = { key -> EnvLoader.read(key, environment, systemProperties) },
+        valueReader: (String) -> String? = { key -> EnvLoader.readOrNull(key, environment, systemProperties) },
     ): SmtpConfig {
         val host = readRequired(SMTP_HOST, valueReader)
         val username = readRequired(SMTP_USERNAME, valueReader)

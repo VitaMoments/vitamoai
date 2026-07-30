@@ -19,4 +19,5 @@ object UsersTable : UuidTable(name = "users") {
     val createdAt = long(name = "created_at")
     val updatedAt = long(name = "updated_at")
     val deletedAt = long(name = "deleted_at").nullable()
+    val profileImageId = uuid("profile_image_id").nullable()
 }

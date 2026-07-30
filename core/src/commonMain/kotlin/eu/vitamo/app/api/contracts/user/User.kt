@@ -1,5 +1,7 @@
 package eu.vitamo.app.api.contracts.user
 
+import eu.vitamo.app.api.contracts.friendship.FriendshipContext
+import eu.vitamo.app.api.contracts.media.MediaReference
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
@@ -13,6 +15,7 @@ sealed interface User {
     val displayName: String
     val bio: String?
     val role: UserRole
+    val profileImage: MediaReference?
 }
 
 @Serializable
@@ -23,6 +26,7 @@ data class AuthenticatedUser(
     override val displayName: String,
     override val bio: String?,
     override val role: UserRole,
+    override val profileImage: MediaReference?,
     val firstName: String?,
     val lastName: String?,
     val alias: String?,
@@ -38,10 +42,12 @@ data class PublicUser(
     override val displayName: String,
     override val bio: String?,
     override val role: UserRole,
+    override val profileImage: MediaReference?,
 ) : User
 
 @Serializable
 data class UserWithContext(
-    val user: User
+    val user: User,
+    val friendshipContext: FriendshipContext = FriendshipContext()
 )
 

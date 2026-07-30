@@ -1,6 +1,8 @@
 package eu.vitamo.app.modules
 
 import eu.vitamo.app.features.auth.routes.authRoutes
+import eu.vitamo.app.features.friendship.routes.friendshipRoutes
+import eu.vitamo.app.features.media.routes.mediaRoutes
 import eu.vitamo.app.features.user.routes.userRoutes
 import io.ktor.server.application.Application
 import io.ktor.server.application.log
@@ -17,7 +19,7 @@ import java.io.File
 fun Application.configureRouting() {
     routing {
         val uploadsDir = System.getenv("UPLOADS_DIR") ?: "uploads"
-        staticFiles("/uploads", File(uploadsDir))
+//        staticFiles("/uploads", File(uploadsDir))
 
         get("/") {
             application.log.info("route hit")
@@ -32,7 +34,9 @@ private fun Routing.apiRoutes() {
         authRoutes()
 
         authenticate("cookie-jwt-authentication") {
+            mediaRoutes()
             userRoutes()
+            friendshipRoutes()
         }
     }
 }

@@ -2,6 +2,7 @@ package eu.vitamo.app.features.user.repository
 
 import eu.vitamo.app.api.contracts.user.UserWithContext
 import eu.vitamo.app.api.result.PagedResult
+import eu.vitamo.app.features.media.model.PickedImage
 import eu.vitamo.app.features.user.api.UserApi
 import eu.vitamo.app.mapper.toRepositoryResult
 import eu.vitamo.app.repository.RepositoryResult
@@ -37,5 +38,21 @@ class UserRepositoryImpl(
                 offset = offset,
             )
             .toRepositoryResult()
+    }
+
+    override suspend fun updateProfileImage(
+        image: PickedImage,
+    ): RepositoryResult<UserWithContext> {
+        return userApi
+            .updateProfileImage(
+                image = image,
+            )
+            .toRepositoryResult { response ->
+                response
+            }
+    }
+
+    private companion object {
+        const val MAX_PAGE_SIZE: Int = 50
     }
 }

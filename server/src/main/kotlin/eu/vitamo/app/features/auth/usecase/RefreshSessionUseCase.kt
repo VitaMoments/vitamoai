@@ -92,7 +92,7 @@ class RefreshSessionUseCase(
         )
 
         return LoginSession(
-            user = userRecord.toAuthenticatedUser(),
+            user = userRecord.toAuthenticatedUser(null),
             accessToken = accessToken,
             refreshToken = refreshToken,
         )

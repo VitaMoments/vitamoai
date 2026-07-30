@@ -1,5 +1,6 @@
 package eu.vitamo.app.features.user.mapper
 
+import eu.vitamo.app.api.contracts.media.MediaReference
 import eu.vitamo.app.api.contracts.user.AuthenticatedUser
 import eu.vitamo.app.api.contracts.user.PublicUser
 import eu.vitamo.app.api.contracts.user.User
@@ -34,13 +35,16 @@ internal fun UserEntity.toRecord(): UserRecord =
         createdAt = Instant.fromEpochMilliseconds(createdAt),
         updatedAt = Instant.fromEpochMilliseconds(updatedAt),
         emailVerifiedAt = emailVerifiedAt,
-        deletedAt = deletedAt?.let { Instant.fromEpochMilliseconds(it) },
+        deletedAt = deletedAt?.let {
+            Instant.fromEpochMilliseconds(it)
+        },
+        profileImageId = profileImageId,
     )
 
-internal fun UserEntity.toCredentialsRecord() : UserCredentialsRecord =
+internal fun UserEntity.toCredentialsRecord(): UserCredentialsRecord =
     UserCredentialsRecord(
-        user = this.toRecord(),
-        passwordHash = this.hashedPassword
+        user = toRecord(),
+        passwordHash = hashedPassword,
     )
 
 fun searchPredicate(
@@ -63,18 +67,27 @@ fun searchPredicate(
 
     val base = excludeMe and excludeRemoved
 
-    val q = needle
+    val query = needle
         ?.trim()
-        ?.takeIf { it.isNotBlank() }
+        ?.takeIf(String::isNotBlank)
         ?.lowercase()
         ?: return base
 
-    val pattern = "%$q%"
+    val pattern = "%$query%"
 
     val matches =
-        (UsersTable.firstName.isNotNull() and (UsersTable.firstName.lowerCase() like pattern)) or
-                (UsersTable.lastName.isNotNull() and (UsersTable.lastName.lowerCase() like pattern)) or
-                (UsersTable.alias.isNotNull() and (UsersTable.alias.lowerCase() like pattern))
+        (
+                UsersTable.firstName.isNotNull() and
+                        (UsersTable.firstName.lowerCase() like pattern)
+                ) or
+                (
+                        UsersTable.lastName.isNotNull() and
+                                (UsersTable.lastName.lowerCase() like pattern)
+                        ) or
+                (
+                        UsersTable.alias.isNotNull() and
+                                (UsersTable.alias.lowerCase() like pattern)
+                        )
 
     return base and matches
 }
@@ -90,21 +103,33 @@ internal fun ResultRow.toUserRecord(): UserRecord =
         bio = this[UsersTable.bio],
         birthDate = this[UsersTable.birthDate],
         role = this[UsersTable.role],
-        createdAt = Instant.fromEpochMilliseconds(this[UsersTable.createdAt]),
-        updatedAt = Instant.fromEpochMilliseconds(this[UsersTable.updatedAt]),
+        createdAt = Instant.fromEpochMilliseconds(
+            this[UsersTable.createdAt],
+        ),
+        updatedAt = Instant.fromEpochMilliseconds(
+            this[UsersTable.updatedAt],
+        ),
         emailVerifiedAt = this[UsersTable.emailVerifiedAt],
-        deletedAt = this[UsersTable.deletedAt]?.let { Instant.fromEpochMilliseconds(it) },
+        deletedAt = this[UsersTable.deletedAt]?.let {
+            Instant.fromEpochMilliseconds(it)
+        },
+        profileImageId = this[UsersTable.profileImageId],
     )
 
-fun UserRecord.toPublicUser(): PublicUser =
+fun UserRecord.toPublicUser(
+    profileImage: MediaReference?,
+): PublicUser =
     PublicUser(
         id = id,
         displayName = displayName,
         bio = bio,
         role = role,
+        profileImage = profileImage,
     )
 
-fun UserRecord.toAuthenticatedUser(): AuthenticatedUser =
+fun UserRecord.toAuthenticatedUser(
+    profileImage: MediaReference?,
+): AuthenticatedUser =
     AuthenticatedUser(
         id = id,
         displayName = displayName,
@@ -115,33 +140,21 @@ fun UserRecord.toAuthenticatedUser(): AuthenticatedUser =
         alias = alias,
         birthDate = birthDate,
         email = email,
+        profileImage = profileImage,
     )
 
 fun UserRecord.toUser(
     accessLevel: UserAccessLevel,
+    profileImage: MediaReference?,
 ): User =
     when (accessLevel) {
         UserAccessLevel.PUBLIC ->
-            toPublicUser()
+            toPublicUser(
+                profileImage = profileImage,
+            )
 
         UserAccessLevel.SELF ->
-            toAuthenticatedUser()
+            toAuthenticatedUser(
+                profileImage = profileImage,
+            )
     }
-
-//fun UsersTable.displayNameSortExpr(): ExpressionWithColumnType<String> {
-//    return object : ExpressionWithColumnType<String>() {
-//        override val columnType = VarCharColumnType()
-//
-//        override fun toQueryBuilder(queryBuilder: QueryBuilder) {
-//            queryBuilder.append("COALESCE(NULLIF(TRIM(CONCAT(COALESCE(")
-//            firstname.toQueryBuilder(queryBuilder)
-//            queryBuilder.append(", ''), ' ', COALESCE(")
-//            lastname.toQueryBuilder(queryBuilder)
-//            queryBuilder.append(", ''))), ''), COALESCE(")
-//            alias.toQueryBuilder(queryBuilder)
-//            queryBuilder.append(", ")
-//            username.toQueryBuilder(queryBuilder)
-//            queryBuilder.append("))")
-//        }
-//    }
-//}

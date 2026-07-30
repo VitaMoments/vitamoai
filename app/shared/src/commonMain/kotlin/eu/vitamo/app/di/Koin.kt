@@ -7,6 +7,11 @@ import eu.vitamo.app.auth.api.KtorAuthApi
 import eu.vitamo.app.auth.repository.AuthRepository
 import eu.vitamo.app.auth.repository.AuthRepositoryImpl
 import eu.vitamo.app.di.modules.uiKoinModules
+import eu.vitamo.app.features.media.api.MediaApi
+import eu.vitamo.app.features.media.api.MediaApiConfig
+import eu.vitamo.app.features.media.api.MediaApiImpl
+import eu.vitamo.app.features.media.repository.MediaRepository
+import eu.vitamo.app.features.media.repository.MediaRepositoryImpl
 import eu.vitamo.app.features.user.api.UserApi
 import eu.vitamo.app.features.user.api.UserApiConfig
 import eu.vitamo.app.features.user.api.UserApiImpl
@@ -36,6 +41,10 @@ internal val sharedAppModule: Module = module {
     single { UserApiConfig() }
     single<UserApi> { UserApiImpl(get(), get(), get()) }
     single<UserRepository> { UserRepositoryImpl(get()) }
+
+    single { MediaApiConfig() }
+    single<MediaApi> { MediaApiImpl(get(), get(), get()) }
+    single<MediaRepository> { MediaRepositoryImpl(get()) }
 }
 
 fun initKoin() {

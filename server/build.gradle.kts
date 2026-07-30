@@ -26,6 +26,7 @@ dependencies {
     implementation(libs.ktor.server.status.pages.jvm)
     implementation(libs.ktor.server.auth.jvm)
     implementation(libs.ktor.server.auth.jwt.jvm)
+    implementation(libs.ktor.server.partial.content)
     implementation(libs.ktor.serialization.kotlinx.json.jvm)
     implementation(libs.thymeleaf)
     implementation(libs.jakarta.mail)
@@ -47,4 +48,6 @@ dependencies {
     testImplementation(libs.ktor.serverTestHost)
     testImplementation(libs.kotlin.testJunit)
     testImplementation(libs.kotlinx.coroutines.test)
+
+    implementation(libs.metadata.extractor)
 }

@@ -1,6 +1,6 @@
 package eu.vitamo.app.modules
 
-import eu.vitamo.app.api.contracts.common.ApiErrorCode
+import eu.vitamo.app.api.contracts.errorcodes.ApiErrorCode
 import eu.vitamo.app.api.result.ApiError
 import eu.vitamo.app.api.result.ErrorCode
 import eu.vitamo.app.exception.ApiException

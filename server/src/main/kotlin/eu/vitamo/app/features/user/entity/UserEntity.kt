@@ -23,4 +23,5 @@ class UserEntity(id: EntityID<Uuid>) : UuidEntity(id) {
     var updatedAt by UsersTable.updatedAt
     var emailVerifiedAt by UsersTable.emailVerifiedAt
     var deletedAt by UsersTable.deletedAt
+    var profileImageId by UsersTable.profileImageId
 }

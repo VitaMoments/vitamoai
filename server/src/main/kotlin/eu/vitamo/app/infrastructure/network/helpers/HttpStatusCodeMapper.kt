@@ -1,6 +1,6 @@
 package eu.vitamo.app.infrastructure.network.helpers
 
-import eu.vitamo.app.api.contracts.common.ApiErrorCode
+import eu.vitamo.app.api.contracts.errorcodes.ApiErrorCode
 import eu.vitamo.app.api.result.ApiFieldError
 import eu.vitamo.app.api.result.ErrorCode
 import eu.vitamo.app.repository.HasFieldErrors

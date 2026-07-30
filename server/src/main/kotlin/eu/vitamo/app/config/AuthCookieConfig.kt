@@ -10,7 +10,7 @@ data class AuthCookieConfig(
             environment: Map<String, String> = System.getenv(),
             systemProperties: Properties = System.getProperties(),
         ): AuthCookieConfig {
-            val explicitSecure = EnvLoader.read(
+            val explicitSecure = EnvLoader.readOrNull(
                 key = "AUTH_COOKIE_SECURE",
                 environment = environment,
                 systemProperties = systemProperties,
