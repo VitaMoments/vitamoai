@@ -9,10 +9,3 @@ data class SendFriendRequestRequest(
     @Contextual
     val targetUserId: Uuid,
 )
-
-@Serializable
-data class FriendshipMutationResponse(
-    @Contextual
-    val friendshipId: Uuid? = null,
-    val state: FriendshipState,
-)

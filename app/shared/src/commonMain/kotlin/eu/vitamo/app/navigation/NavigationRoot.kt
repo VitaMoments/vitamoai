@@ -2,6 +2,8 @@ package eu.vitamo.app.navigation
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.key
@@ -21,7 +23,10 @@ import eu.vitamo.app.ui.auth.password_recovery.reset_password.ResetPasswordScree
 import eu.vitamo.app.ui.auth.registration.RegistrationScreen
 import eu.vitamo.app.ui.auth.verification.VerificationScreen
 import eu.vitamo.app.ui.home.HomeScreen
+import eu.vitamo.app.ui.settings.SettingsScreen
 import eu.vitamo.app.ui.user.profile.ProfileScreen
+import eu.vitamo.app.ui.user.search.SearchUsersScreen
+import io.ktor.util.logging.Logger
 
 @Composable
 fun NavigationRoot(
@@ -45,7 +50,7 @@ fun NavigationRoot(
                 ?: AuthDestination.Login
 
         AuthStatus.Loading -> AuthDestination.Login
-        is AuthStatus.Unavailable -> ErrorDestination.Unavailable
+        is AuthStatus.Unavailable -> AuthDestination.Login
     }
 
     key(initialDestination) {
@@ -78,6 +83,13 @@ fun NavigationRoot(
                             )
                         }
 
+                        entry<MainDestination.Settings> {
+                            SettingsScreen()
+                        }
+
+                        entry<MainDestination.Users> {
+                            SearchUsersScreen()
+                        }
 
 
                         /*

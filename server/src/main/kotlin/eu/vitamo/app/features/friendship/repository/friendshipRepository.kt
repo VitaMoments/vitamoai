@@ -34,12 +34,12 @@ interface FriendshipRepository {
     suspend fun deletePendingRequest(
         friendshipId: Uuid,
         currentUserId: Uuid,
-    ): RepositoryResult<Unit>
+    ): RepositoryResult<FriendshipRecord>
 
     suspend fun deleteFriendship(
         friendshipId: Uuid,
         currentUserId: Uuid,
-    ): RepositoryResult<Unit>
+    ): RepositoryResult<FriendshipRecord>
 
     suspend fun findIncomingRequests(
         currentUserId: Uuid,

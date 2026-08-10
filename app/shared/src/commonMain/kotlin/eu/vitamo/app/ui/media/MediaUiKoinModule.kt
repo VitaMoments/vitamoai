@@ -1,5 +1,6 @@
 package eu.vitamo.app.ui.media
 
+import coil3.ImageLoader
 import eu.vitamo.app.features.media.model.MediaUrlResolver
 import eu.vitamo.app.network.DevNetworkConfig
 import eu.vitamo.app.ui.user.profile.ProfileViewModel

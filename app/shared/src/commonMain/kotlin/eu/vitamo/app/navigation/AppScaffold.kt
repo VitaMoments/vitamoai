@@ -31,8 +31,16 @@ private val drawerDestinations = listOf(
         destination = MainDestination.Home,
     ),
     DrawerDestination(
+        title = "Instellingen",
+        destination = MainDestination.Settings,
+    ),
+    DrawerDestination(
         title = "Profile",
         destination = MainDestination.Profile
+    ),
+    DrawerDestination(
+        title = "Users",
+        destination = MainDestination.Users
     )
 )
 
@@ -67,8 +75,7 @@ fun AppScaffold(
                         label = {
                             Text(drawerDestination.title)
                         },
-                        selected = currentDestination.drawerRoot() ==
-                                drawerDestination.destination,
+                        selected = currentDestination.drawerRoot() == drawerDestination.destination,
                         onClick = {
                             coroutineScope.launch {
                                 drawerState.close()
@@ -128,10 +135,8 @@ private fun MainDestination.drawerRoot(): MainDestination =
     when (this) {
         MainDestination.Home -> MainDestination.Home
         MainDestination.Profile -> MainDestination.Profile
+        MainDestination.Settings -> MainDestination.Settings
+        MainDestination.Users -> MainDestination.Users
     }
 
-private fun MainDestination.navigationTitle(): String =
-    when (this) {
-        MainDestination.Home -> "Home"
-        MainDestination.Profile -> "Profile"
-    }
+private fun MainDestination.navigationTitle(): String = title

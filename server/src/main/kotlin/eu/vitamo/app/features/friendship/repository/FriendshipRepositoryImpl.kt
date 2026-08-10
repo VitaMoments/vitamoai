@@ -299,118 +299,30 @@ class FriendshipRepositoryImpl :
     override suspend fun deletePendingRequest(
         friendshipId: Uuid,
         currentUserId: Uuid,
-    ): RepositoryResult<Unit> = dbQuery {
-        val friendship = findRecord(
+    ): RepositoryResult<FriendshipRecord> {
+        return deleteByStatus(
             friendshipId = friendshipId,
-        ) ?: return@dbQuery RepositoryResult.Error(
-            error =
-                FriendshipRepositoryErrors
-                    .friendRequestNotFound(),
-        )
-
-        if (
-            friendship.status !=
-            FriendshipStatus.PENDING
-        ) {
-            return@dbQuery RepositoryResult.Error(
-                error =
-                    FriendshipRepositoryErrors
-                        .friendRequestNotPending(),
-            )
-        }
-
-        if (
-            !friendship.containsUser(
-                userId = currentUserId,
-            )
-        ) {
-            return@dbQuery RepositoryResult.Error(
-                error =
-                    FriendshipRepositoryErrors
-                        .notFriendshipParticipant(),
-            )
-        }
-
-        val deletedRows = FriendshipsTable.deleteWhere {
-            (
-                    FriendshipsTable.id eq
-                            friendshipId
-                    ) and
-                    (
-                            FriendshipsTable.status eq
-                                    FriendshipStatus.PENDING
-                            )
-        }
-
-        if (deletedRows == 0) {
-            return@dbQuery RepositoryResult.Error(
-                error =
-                    FriendshipRepositoryErrors
-                        .friendRequestNotPending(),
-            )
-        }
-
-        RepositoryResult.Success(
-            data = Unit,
+            currentUserId = currentUserId,
+            requiredStatus = FriendshipStatus.PENDING,
+            notFoundError = FriendshipRepositoryErrors
+                .friendRequestNotFound(),
+            invalidStatusError = FriendshipRepositoryErrors
+                .friendRequestNotPending(),
         )
     }
 
     override suspend fun deleteFriendship(
         friendshipId: Uuid,
         currentUserId: Uuid,
-    ): RepositoryResult<Unit> = dbQuery {
-        val friendship = findRecord(
+    ): RepositoryResult<FriendshipRecord> {
+        return deleteByStatus(
             friendshipId = friendshipId,
-        ) ?: return@dbQuery RepositoryResult.Error(
-            error =
-                FriendshipRepositoryErrors
-                    .friendshipNotFound(),
-        )
-
-        if (
-            friendship.status !=
-            FriendshipStatus.ACCEPTED
-        ) {
-            return@dbQuery RepositoryResult.Error(
-                error =
-                    FriendshipRepositoryErrors
-                        .friendshipNotFound(),
-            )
-        }
-
-        if (
-            !friendship.containsUser(
-                userId = currentUserId,
-            )
-        ) {
-            return@dbQuery RepositoryResult.Error(
-                error =
-                    FriendshipRepositoryErrors
-                        .notFriendshipParticipant(),
-            )
-        }
-
-        val deletedRows = FriendshipsTable.deleteWhere {
-            (
-                    FriendshipsTable.id eq
-                            friendshipId
-                    ) and
-                    (
-                            FriendshipsTable.status eq
-                                    FriendshipStatus.ACCEPTED
-                            )
-        }
-
-        if (deletedRows == 0) {
-            return@dbQuery RepositoryResult.Error(
-                error =
-                    FriendshipRepositoryErrors
-                        .friendshipNotFound(),
-            )
-        }
-
-        RepositoryResult.Success(
-            data = Unit,
+            currentUserId = currentUserId,
+            requiredStatus = FriendshipStatus.ACCEPTED,
+            notFoundError = FriendshipRepositoryErrors
+                .friendshipNotFound(),
+            invalidStatusError = FriendshipRepositoryErrors
+                .friendshipNotFound(),
         )
     }
 
@@ -564,5 +476,47 @@ class FriendshipRepositoryImpl :
                 (
                         FriendshipsTable.userHighId eq high
                         )
+    }
+
+    private suspend fun deleteByStatus(
+        friendshipId: Uuid,
+        currentUserId: Uuid,
+        requiredStatus: FriendshipStatus,
+        notFoundError: RepositoryError,
+        invalidStatusError: RepositoryError,
+    ): RepositoryResult<FriendshipRecord> = dbQuery {
+        val friendship = findRecord(
+            friendshipId = friendshipId,
+        ) ?: return@dbQuery RepositoryResult.Error(
+            error = notFoundError,
+        )
+
+        if (friendship.status != requiredStatus) {
+            return@dbQuery RepositoryResult.Error(
+                error = invalidStatusError,
+            )
+        }
+
+        if (!friendship.containsUser(currentUserId)) {
+            return@dbQuery RepositoryResult.Error(
+                error = FriendshipRepositoryErrors
+                    .notFriendshipParticipant(),
+            )
+        }
+
+        val deletedRows = FriendshipsTable.deleteWhere {
+            (FriendshipsTable.id eq friendshipId) and
+                    (FriendshipsTable.status eq requiredStatus)
+        }
+
+        if (deletedRows == 0) {
+            return@dbQuery RepositoryResult.Error(
+                error = invalidStatusError,
+            )
+        }
+
+        RepositoryResult.Success(
+            data = friendship,
+        )
     }
 }

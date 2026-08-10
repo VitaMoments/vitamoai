@@ -3,7 +3,11 @@
     <!-- Allow HTTP for development servers -->
     <domain-config cleartextTrafficPermitted="true">
         <!-- AUTO-GENERATED-DEV-IP-START -->
+        <!-- Fysieke Android devices / lokaal netwerk -->
         <domain includeSubdomains="true">192.168.178.93</domain>
+
+        <!-- Android Emulator -> host machine -->
+        <domain includeSubdomains="true">10.0.2.2</domain>
         <!-- AUTO-GENERATED-DEV-IP-END -->
     </domain-config>
 

@@ -87,6 +87,9 @@ fun searchPredicate(
                 (
                         UsersTable.alias.isNotNull() and
                                 (UsersTable.alias.lowerCase() like pattern)
+                        ) or
+                (
+                        UsersTable.displayName.isNotNull() and (UsersTable.displayName.lowerCase() like pattern)
                         )
 
     return base and matches

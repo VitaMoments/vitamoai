@@ -3,6 +3,7 @@ package eu.vitamo.app.di
 import eu.vitamo.app.features.auth.di.authModule
 import eu.vitamo.app.database.DatabaseFactory
 import eu.vitamo.app.database.databaseModule
+import eu.vitamo.app.features.friendship.di.friendshipModule
 import eu.vitamo.app.features.media.di.mediaModule
 import eu.vitamo.app.features.user.di.userModule
 import eu.vitamo.app.mail.di.mailModule
@@ -27,7 +28,15 @@ fun initServerKoin() {
     }
 
     startKoin {
-        modules(serverModule, databaseModule, authModule, mailModule, userModule, mediaModule)
+        modules(
+            serverModule,
+            databaseModule,
+            authModule,
+            mailModule,
+            userModule,
+            mediaModule,
+            friendshipModule,
+        )
     }
 
     val skipDbInit = System.getProperty(SKIP_DB_INIT_PROPERTY)?.toBooleanStrictOrNull() == true

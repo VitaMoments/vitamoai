@@ -2,22 +2,11 @@ package eu.vitamo.app.storage
 
 import kotlinx.coroutines.flow.Flow
 
-enum class AppThemePreference {
-    System,
-    Light,
-    Dark,
-}
-
 interface AppPreferencesStorage {
-    val theme: Flow<AppThemePreference>
-    val onboardingCompleted: Flow<Boolean>
-
-    fun currentTheme(): AppThemePreference
-    fun currentOnboardingCompleted(): Boolean
-
-    suspend fun setTheme(theme: AppThemePreference)
-
-    suspend fun setOnboardingCompleted(completed: Boolean)
-
-    suspend fun clear()
+    val lastRoute: Flow<String>
+    val themeMode: Flow<String?>
+    val dailyQuestionPostponeUntilIso: Flow<String?>
+    suspend fun setLastRoute(route: String)
+    suspend fun setThemeMode(mode: String?)
+    suspend fun setDailyQuestionPostponeUntilIso(isoInstant: String?)
 }

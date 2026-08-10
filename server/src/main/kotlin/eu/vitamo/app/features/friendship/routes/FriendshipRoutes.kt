@@ -38,9 +38,7 @@ fun Route.friendshipRoutes(
                 call.requireUserId()
 
             val request =
-                call.receive<
-                        SendFriendRequestRequest
-                        >()
+                call.receive<SendFriendRequestRequest>()
 
             call.handleResult(
                 result =

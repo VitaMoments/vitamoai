@@ -77,6 +77,10 @@ kotlin {
             implementation(libs.coil3.compose)
             implementation(libs.coil3.network.ktor)
 
+            implementation(
+                libs.multiplatform.settings.no.arg,
+            )
+
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

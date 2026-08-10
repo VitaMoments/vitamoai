@@ -51,13 +51,17 @@ val friendshipModule = module {
 
     single {
         DeleteFriendRequestUseCase(
+            userRepository = get(),
             friendshipRepository = get(),
+            userContextLoader = get()
         )
     }
 
     single {
         RemoveFriendshipUseCase(
+            userRepository = get(),
             friendshipRepository = get(),
+            userContextLoader = get()
         )
     }
 

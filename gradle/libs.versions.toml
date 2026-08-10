@@ -21,6 +21,7 @@ kotlinx-serialization = "1.11.0"
 kotlinx-datetime = "0.8.0"
 materialIconsExtended = "1.7.3"
 metadataExtractor = "2.21.0"
+multiplatformSettingsNoArg = "1.3.0"
 thymeleaf = "3.1.2.RELEASE"
 jakartaMail = "2.0.2"
 
@@ -87,6 +88,7 @@ ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "kto
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 material-icons-extended-v173 = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 metadata-extractor = { module = "com.drewnoakes:metadata-extractor", version.ref = "metadataExtractor" }
+multiplatform-settings-no-arg = { module = "com.russhwolf:multiplatform-settings-no-arg", version.ref = "multiplatformSettingsNoArg" }
 thymeleaf = { module = "org.thymeleaf:thymeleaf", version.ref = "thymeleaf" }
 jakarta-mail = { module = "com.sun.mail:jakarta.mail", version.ref = "jakartaMail" }
 

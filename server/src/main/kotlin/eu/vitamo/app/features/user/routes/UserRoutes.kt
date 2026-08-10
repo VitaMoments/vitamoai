@@ -36,6 +36,33 @@ fun Route.userRoutes() {
             call.handleResult(result)
         }
 
+        get("/search") {
+            val currentUserId = call.requireUserId()
+
+            val query = call.request.queryParameters["query"]
+                ?.trim()
+                ?.takeIf(String::isNotBlank)
+
+            val limit = call.request.queryParameters["limit"]
+                ?.toIntOrNull()
+                ?.coerceIn(1, 50)
+                ?: 20
+
+            val offset = call.request.queryParameters["offset"]
+                ?.toLongOrNull()
+                ?.coerceAtLeast(0L)
+                ?: 0L
+
+            val result = searchUsersUseCase(
+                currentUserId = currentUserId,
+                query = query,
+                limit = limit,
+                offset = offset,
+            )
+
+            call.handleResult(result)
+        }
+
         get("/{userId}") {
             val currentUserId = call.requireUserId()
 
