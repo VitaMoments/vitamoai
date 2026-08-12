@@ -1,7 +1,7 @@
 package eu.vitamo.app.api.contracts.auth
 
+import eu.vitamo.app.api.contracts.device.ClientContext
 import eu.vitamo.app.api.contracts.user.AuthenticatedUser
-import eu.vitamo.app.auth.ClientContext
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
 
@@ -26,7 +26,7 @@ data class RegisterResponse(
 data class LoginRequest(
     val email: String,
     val password: String,
-    val clientContext: ClientContext? = null,
+    val clientContext: ClientContext,
 )
 
 @Serializable

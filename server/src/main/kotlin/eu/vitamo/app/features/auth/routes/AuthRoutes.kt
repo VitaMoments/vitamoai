@@ -18,6 +18,7 @@ import eu.vitamo.app.features.auth.usecase.RefreshSessionUseCase
 import eu.vitamo.app.features.auth.usecase.ResetPasswordUseCase
 import eu.vitamo.app.features.auth.usecase.VerifyEmailUseCase
 import eu.vitamo.app.config.AuthCookieConfig
+import eu.vitamo.app.infrastructure.network.helpers.requireDeviceId
 import eu.vitamo.app.infrastructure.network.helpers.requireUserId
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -115,7 +116,8 @@ fun Route.authRoutes() {
 
             get("/session") {
                 val userId = call.requireUserId()
-                val session = refreshSessionUseCase.createSessionByUserId(userId)
+                val deviceId = call.requireDeviceId()
+                val session = refreshSessionUseCase.createSessionByUserId(userId, deviceId)
                 appendAuthCookies(call, session, authCookieConfig)
                 call.respond(
                     SessionResponse(

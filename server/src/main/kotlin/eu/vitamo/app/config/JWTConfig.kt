@@ -23,5 +23,6 @@ data class JWTConfig(
     companion object {
         const val JWT_SUBJECT: String = "Authentication"
         const val USER_ID_CLAIM: String = "userId"
+        const val DEVICE_ID_CLAIM: String = "deviceId"
     }
 }

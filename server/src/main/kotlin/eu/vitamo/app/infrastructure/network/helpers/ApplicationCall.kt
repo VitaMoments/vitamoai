@@ -26,7 +26,18 @@ val ApplicationCall.userId: Uuid?
             runCatching {  Uuid.parse(it) }.getOrNull()
         }
 
+val ApplicationCall.deviceId: Uuid?
+    get() = principal< JWTPrincipal>()
+        ?.payload
+        ?.getClaim(JWTConfig.DEVICE_ID_CLAIM)
+        ?.asString()
+        ?.let {
+            runCatching { Uuid.parse(it) }.getOrNull()
+        }
+
 fun ApplicationCall.requireUserId() : Uuid = userId ?: throw AuthException.InvalidAccessToken()
+
+fun ApplicationCall.requireDeviceId() : Uuid = deviceId ?: throw AuthException.InvalidAccessToken()
 
 fun ApplicationCall.getQueryParameter(param: String) : String? = this.request.queryParameters[param]
 fun ApplicationCall.requireQueryParameter(param: String) : String = this

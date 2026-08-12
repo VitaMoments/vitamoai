@@ -1,38 +1,56 @@
 package eu.vitamo.app.features.auth.service
 
-import eu.vitamo.app.auth.ClientContext
 import eu.vitamo.app.features.auth.model.AuthToken
-import eu.vitamo.app.features.auth.persistence.refresh.RefreshTokenEntity
-import eu.vitamo.app.features.auth.persistence.refresh.RefreshTokensTable
-import eu.vitamo.app.features.auth.persistence.refresh.applyClientContext
-import eu.vitamo.app.features.auth.persistence.refresh.isValid
-import eu.vitamo.app.features.auth.persistence.refresh.markCreated
-import eu.vitamo.app.features.auth.persistence.refresh.markExpires
-import eu.vitamo.app.features.auth.persistence.refresh.revoke
-import eu.vitamo.app.features.auth.persistence.refresh.touch
+import eu.vitamo.app.features.auth.persistence.entity.RefreshTokenEntity
+import eu.vitamo.app.features.auth.persistence.entity.isValid
+import eu.vitamo.app.features.auth.persistence.entity.markCreated
+import eu.vitamo.app.features.auth.persistence.entity.markExpires
+import eu.vitamo.app.features.auth.persistence.entity.revoke
+import eu.vitamo.app.features.auth.persistence.entity.touch
+import eu.vitamo.app.features.auth.persistence.table.RefreshTokensTable
+import eu.vitamo.app.features.device.table.DevicesTable
 import eu.vitamo.app.features.user.table.UsersTable
 import kotlin.time.Clock
-import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.core.dao.id.EntityID
-import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import kotlin.uuid.Uuid
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 open class RefreshTokenService(
     private val tokenHashService: TokenHashService,
 ) {
+
     fun create(
         authToken: AuthToken,
         userId: Uuid,
-        context: ClientContext?,
+        deviceId: Uuid,
     ): RefreshTokenEntity = transaction {
         val now = Clock.System.now().epochSeconds
         val expiresAt = authToken.expiresAt.epochSeconds
+
         RefreshTokenEntity.new {
-            tokenHash = tokenHashService.hash(authToken.token)
-            this.userId = EntityID(userId, UsersTable)
-            applyClientContext(context)
-            markExpires(expiresAt)
-            markCreated(now)
+            tokenHash = tokenHashService.hash(
+                authToken.token,
+            )
+
+            this.userId = EntityID(
+                userId,
+                UsersTable,
+            )
+
+            this.deviceId = EntityID(
+                deviceId,
+                DevicesTable,
+            )
+
+            markExpires(
+                expiresAt,
+            )
+
+            markCreated(
+                now,
+            )
+
             revokedAt = null
             lastUsedAt = null
             replacedBySessionId = null
@@ -40,31 +58,45 @@ open class RefreshTokenService(
         }
     }
 
-    fun findValid(refreshToken: String): RefreshTokenEntity? = transaction {
-        val tokenHash = tokenHashService.hash(refreshToken)
-        val now = Clock.System.now().epochSeconds
+    fun findValid(
+        refreshToken: String,
+    ): RefreshTokenEntity? = transaction {
+        val tokenHash =
+            tokenHashService.hash(refreshToken)
 
-        RefreshTokenEntity.find {
-            RefreshTokensTable.tokenHash eq tokenHash
-        }
+        val now =
+            Clock.System.now().epochSeconds
+
+        RefreshTokenEntity
+            .find {
+                RefreshTokensTable.tokenHash eq tokenHash
+            }
             .firstOrNull { entity ->
-                entity.tokenHash == tokenHash && entity.isValid(now)
+                entity.isValid(now)
             }
     }
 
-    fun markUsed(tokenId: EntityID<Long>) {
+    fun markUsed(
+        tokenId: EntityID<Long>,
+    ) {
         transaction {
-            RefreshTokenEntity.findById(tokenId)?.let {
-                it.touch(Clock.System.now().epochSeconds)
-            }
+            RefreshTokenEntity
+                .findById(tokenId)
+                ?.touch(
+                    Clock.System.now().epochSeconds,
+                )
         }
     }
 
-    fun revoke(tokenId: EntityID<Long>) {
+    fun revoke(
+        tokenId: EntityID<Long>,
+    ) {
         transaction {
-            RefreshTokenEntity.findById(tokenId)?.let {
-                it.revoke(Clock.System.now().epochSeconds)
-            }
+            RefreshTokenEntity
+                .findById(tokenId)
+                ?.revoke(
+                    Clock.System.now().epochSeconds,
+                )
         }
     }
 }

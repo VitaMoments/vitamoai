@@ -1,10 +1,8 @@
 package eu.vitamo.app.features.auth.usecase
 
-import eu.vitamo.app.auth.ClientContext
 import eu.vitamo.app.exception.ApiException
 import eu.vitamo.app.exception.AuthException
 import eu.vitamo.app.features.auth.model.LoginSession
-import eu.vitamo.app.features.auth.persistence.refresh.toClientContextOrNull
 import eu.vitamo.app.features.auth.service.JWTService
 import eu.vitamo.app.features.auth.service.RefreshTokenService
 import eu.vitamo.app.features.user.mapper.toAuthenticatedUser
@@ -19,11 +17,13 @@ class RefreshSessionUseCase(
     private val refreshTokenService: RefreshTokenService,
     private val jwtService: JWTService,
 ) {
+
     suspend fun refresh(
         refreshToken: String,
     ): LoginSession {
-        val currentToken = refreshTokenService.findValid(refreshToken)
-            ?: throw AuthException.InvalidRefreshToken()
+        val currentToken =
+            refreshTokenService.findValid(refreshToken)
+                ?: throw AuthException.InvalidRefreshToken()
 
         val userRecord = findUser(
             userId = currentToken.userId.value,
@@ -32,18 +32,28 @@ class RefreshSessionUseCase(
             },
         )
 
-        val session = createLoginSession(
-            userRecord = userRecord,
-            context = currentToken.toClientContextOrNull(),
+        val deviceId =
+            currentToken.deviceId.value
+
+        /*
+         * Eerst oude token revoken.
+         *
+         * Daarna wordt de nieuwe refresh token
+         * aan exact hetzelfde device gekoppeld.
+         */
+        refreshTokenService.revoke(
+            currentToken.id,
         )
 
-        refreshTokenService.revoke(currentToken.id)
-
-        return session
+        return createLoginSession(
+            userRecord = userRecord,
+            deviceId = deviceId,
+        )
     }
 
     suspend fun createSessionByUserId(
         userId: Uuid,
+        deviceId: Uuid,
     ): LoginSession {
         val userRecord = findUser(
             userId = userId,
@@ -54,7 +64,7 @@ class RefreshSessionUseCase(
 
         return createLoginSession(
             userRecord = userRecord,
-            context = null,
+            deviceId = deviceId,
         )
     }
 
@@ -62,7 +72,10 @@ class RefreshSessionUseCase(
         userId: Uuid,
         onNotFound: () -> RuntimeException,
     ): UserRecord =
-        when (val result = userRepository.findById(userId)) {
+        when (
+            val result =
+                userRepository.findById(userId)
+        ) {
             is RepositoryResult.Success ->
                 result.data
 
@@ -78,17 +91,23 @@ class RefreshSessionUseCase(
                 }
         }
 
-    private suspend fun createLoginSession(
+    private fun createLoginSession(
         userRecord: UserRecord,
-        context: ClientContext?,
+        deviceId: Uuid,
     ): LoginSession {
-        val accessToken = jwtService.generateAccessToken(userRecord.id)
-        val refreshToken = jwtService.generateRefreshToken()
+        val accessToken =
+            jwtService.generateAccessToken(
+                userId = userRecord.id,
+                deviceId = deviceId,
+            )
+
+        val refreshToken =
+            jwtService.generateRefreshToken()
 
         refreshTokenService.create(
             authToken = refreshToken,
             userId = userRecord.id,
-            context = context,
+            deviceId = deviceId,
         )
 
         return LoginSession(

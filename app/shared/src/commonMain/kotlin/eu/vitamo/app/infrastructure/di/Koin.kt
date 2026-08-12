@@ -1,6 +1,6 @@
 package eu.vitamo.app.infrastructure.di
 
-
+import com.russhwolf.settings.Settings
 import dev.brewkits.grant.di.grantModule
 import dev.brewkits.grant.di.grantPlatformModule
 import eu.vitamo.app.features.auth.api.AuthApi
@@ -8,8 +8,10 @@ import eu.vitamo.app.features.auth.api.AuthApiConfig
 import eu.vitamo.app.features.auth.api.KtorAuthApi
 import eu.vitamo.app.features.auth.repository.AuthRepository
 import eu.vitamo.app.features.auth.repository.AuthRepositoryImpl
-import eu.vitamo.app.infrastructure.di.modules.uiKoinModules
-import eu.vitamo.app.features.user.friendship.api.FriendshipApiImpl
+import eu.vitamo.app.features.device.provider.ClientContextProvider
+import eu.vitamo.app.features.device.provider.ClientContextProviderImpl
+import eu.vitamo.app.features.device.provider.ClientInstanceInitializer
+import eu.vitamo.app.features.device.provider.PlatformClientInfoProvider
 import eu.vitamo.app.features.media.api.MediaApi
 import eu.vitamo.app.features.media.api.MediaApiConfig
 import eu.vitamo.app.features.media.api.MediaApiImpl
@@ -20,6 +22,7 @@ import eu.vitamo.app.features.user.api.UserApiConfig
 import eu.vitamo.app.features.user.api.UserApiImpl
 import eu.vitamo.app.features.user.friendship.api.FriendshipApi
 import eu.vitamo.app.features.user.friendship.api.FriendshipApiConfig
+import eu.vitamo.app.features.user.friendship.api.FriendshipApiImpl
 import eu.vitamo.app.features.user.friendship.repository.FriendshipRepository
 import eu.vitamo.app.features.user.friendship.repository.FriendshipRepositoryImpl
 import eu.vitamo.app.features.user.friendship.usecase.AcceptFriendRequestUseCase
@@ -30,11 +33,17 @@ import eu.vitamo.app.features.user.friendship.usecase.SendFriendRequestUseCase
 import eu.vitamo.app.features.user.repository.UserRepository
 import eu.vitamo.app.features.user.repository.UserRepositoryImpl
 import eu.vitamo.app.features.user.search.usecase.SearchUsersUseCase
+import eu.vitamo.app.infrastructure.app.AppInitializer
+import eu.vitamo.app.infrastructure.di.modules.uiKoinModules
 import eu.vitamo.app.infrastructure.notification.notificationKoinModule
 import eu.vitamo.app.infrastructure.notification.notificationPlatformModule
-import eu.vitamo.app.infrastructure.permissions.notification.NotificationPermissionViewModel
 import eu.vitamo.app.infrastructure.permissions.GrantPermissionManager
 import eu.vitamo.app.infrastructure.permissions.PermissionManager
+import eu.vitamo.app.infrastructure.permissions.notification.NotificationPermissionViewModel
+import eu.vitamo.app.infrastructure.storage.AppPreferencesStorage
+import eu.vitamo.app.infrastructure.storage.AppPreferencesStorageImpl
+import eu.vitamo.app.infrastructure.storage.ClientInstanceIdStorage
+import eu.vitamo.app.infrastructure.storage.ClientInstanceIdStorageImpl
 import eu.vitamo.app.network.AuthCookieStorage
 import eu.vitamo.app.network.auth.AuthSessionCoordinator
 import eu.vitamo.app.network.auth.PersistentCookieStorage
@@ -50,7 +59,51 @@ import org.koin.dsl.module
 private var koinStarted = false
 
 internal val sharedAppModule: Module = module {
-    single<HttpClient> { createAppHttpClient(get()) }
+
+    single<HttpClient> {
+        createAppHttpClient(
+            cookieStorage = get(),
+        )
+    }
+
+    single<Settings> {
+        Settings()
+    }
+
+    single<ClientInstanceIdStorage> {
+        ClientInstanceIdStorageImpl(
+            settings = get(),
+        )
+    }
+
+    single {
+        PlatformClientInfoProvider()
+    }
+
+    single<ClientContextProvider> {
+        ClientContextProviderImpl(
+            clientInstanceIdStorage = get(),
+            platformClientInfoProvider = get(),
+        )
+    }
+
+    single {
+        ClientInstanceInitializer(
+            clientInstanceIdStorage = get(),
+        )
+    }
+
+    single {
+        AppInitializer(
+            clientInstanceInitializer = get(),
+        )
+    }
+
+    single<AppPreferencesStorage> {
+        AppPreferencesStorageImpl(
+            settings = get(),
+        )
+    }
 
     single<PermissionManager> {
         GrantPermissionManager(
@@ -58,47 +111,150 @@ internal val sharedAppModule: Module = module {
         )
     }
 
-    viewModelOf(::NotificationPermissionViewModel,)
+    viewModelOf(::NotificationPermissionViewModel)
 
-    single<AuthCookieStorage> { PersistentCookieStorage(createAuthCookiePersistence()) }
-    single { AuthSessionCoordinator(get(), get(), get()) }
-    single { AuthApiConfig() }
-    single<AuthApi> { KtorAuthApi(get(), get()) }
-    single<AuthRepository> { AuthRepositoryImpl(get(), get()) }
+    single<AuthCookieStorage> {
+        PersistentCookieStorage(
+            createAuthCookiePersistence(),
+        )
+    }
 
-    single { UserApiConfig() }
-    single<UserApi> { UserApiImpl(get(), get(), get()) }
-    single<UserRepository> { UserRepositoryImpl(get()) }
-    single { SearchUsersUseCase(get()) }
+    single {
+        AuthSessionCoordinator(
+            get(),
+            get(),
+            get(),
+        )
+    }
 
-    single { MediaApiConfig() }
-    single<MediaApi> { MediaApiImpl(get(), get(), get()) }
-    single<MediaRepository> { MediaRepositoryImpl(get()) }
+    single {
+        AuthApiConfig()
+    }
 
-    single { FriendshipApiConfig() }
-    single<FriendshipApi> { FriendshipApiImpl(get(), get(),get()) }
-    single<FriendshipRepository> { FriendshipRepositoryImpl(get()) }
-    single { AcceptFriendRequestUseCase(get()) }
-    single { RejectFriendRequestUseCase(get()) }
-    single { RevokeFriendRequestUseCase(get()) }
-    single { RemoveFriendshipUseCase(get()) }
-    single { SendFriendRequestUseCase(get()) }
+    single<AuthApi> {
+        KtorAuthApi(
+            get(),
+            get(),
+        )
+    }
+
+    single<AuthRepository> {
+        AuthRepositoryImpl(
+            authApi = get(),
+            authSessionCoordinator = get(),
+            clientContextProvider = get(),
+        )
+    }
+
+    single {
+        UserApiConfig()
+    }
+
+    single<UserApi> {
+        UserApiImpl(
+            get(),
+            get(),
+            get(),
+        )
+    }
+
+    single<UserRepository> {
+        UserRepositoryImpl(
+            get(),
+        )
+    }
+
+    single {
+        SearchUsersUseCase(
+            get(),
+        )
+    }
+
+    single {
+        MediaApiConfig()
+    }
+
+    single<MediaApi> {
+        MediaApiImpl(
+            get(),
+            get(),
+            get(),
+        )
+    }
+
+    single<MediaRepository> {
+        MediaRepositoryImpl(
+            get(),
+        )
+    }
+
+    single {
+        FriendshipApiConfig()
+    }
+
+    single<FriendshipApi> {
+        FriendshipApiImpl(
+            get(),
+            get(),
+            get(),
+        )
+    }
+
+    single<FriendshipRepository> {
+        FriendshipRepositoryImpl(
+            get(),
+        )
+    }
+
+    single {
+        AcceptFriendRequestUseCase(
+            get(),
+        )
+    }
+
+    single {
+        RejectFriendRequestUseCase(
+            get(),
+        )
+    }
+
+    single {
+        RevokeFriendRequestUseCase(
+            get(),
+        )
+    }
+
+    single {
+        RemoveFriendshipUseCase(
+            get(),
+        )
+    }
+
+    single {
+        SendFriendRequestUseCase(
+            get(),
+        )
+    }
 }
 
-fun initKoin(appDeclaration: KoinAppDeclaration = {}) {
+fun initKoin(
+    appDeclaration: KoinAppDeclaration = {},
+) {
     if (koinStarted) {
         return
     }
 
     startKoin {
         appDeclaration()
+
         modules(
             grantModule,
             grantPlatformModule,
             notificationKoinModule,
             notificationPlatformModule(),
             sharedAppModule,
-            *uiKoinModules.toTypedArray())
+            *uiKoinModules.toTypedArray(),
+        )
     }
 
     koinStarted = true

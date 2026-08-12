@@ -16,7 +16,6 @@ fun App(
     val appViewModel: AppViewModel = koinViewModel()
     val appState by appViewModel.state.collectAsState()
 
-
     LaunchedEffect(authSessionCoordinator) {
         authSessionCoordinator.bootstrap()
     }

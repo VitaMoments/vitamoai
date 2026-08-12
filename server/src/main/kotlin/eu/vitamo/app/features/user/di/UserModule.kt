@@ -1,5 +1,7 @@
 package eu.vitamo.app.features.user.di
 
+import eu.vitamo.app.features.device.repository.DeviceRepository
+import eu.vitamo.app.features.device.repository.DeviceRepositoryImpl
 import eu.vitamo.app.features.media.usecase.UpdateProfileImageUseCase
 import eu.vitamo.app.features.user.context.UserContextLoader
 import eu.vitamo.app.features.user.context.UserContextProvider
@@ -11,6 +13,8 @@ import eu.vitamo.app.features.user.usecase.SearchUsersUseCase
 import org.koin.dsl.module
 
 val userModule = module {
+
+    single<DeviceRepository> { DeviceRepositoryImpl() }
 
     single<UserRepository> { UserRepositoryImpl() }
     single<UserContextProvider> { UserContextProviderImpl() }

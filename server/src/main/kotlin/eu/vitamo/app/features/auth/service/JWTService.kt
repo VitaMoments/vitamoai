@@ -13,7 +13,7 @@ import kotlin.uuid.Uuid
 open class JWTService(
     private val jwtConfig: JWTConfig,
 ) {
-    fun generateAccessToken(userId: Uuid): AuthToken {
+    fun generateAccessToken(userId: Uuid, deviceId: Uuid): AuthToken {
         val issuedAt = Clock.System.now()
         val expiresAt = issuedAt + jwtConfig.accessTokenExpirationSeconds.seconds
         val token = JWT.create()
@@ -21,6 +21,7 @@ open class JWTService(
             .withAudience(jwtConfig.audience)
             .withSubject(JWTConfig.JWT_SUBJECT)
             .withClaim(JWTConfig.USER_ID_CLAIM, userId.toString())
+            .withClaim(JWTConfig.DEVICE_ID_CLAIM, deviceId.toString())
             .withIssuedAt(Date(issuedAt.toEpochMilliseconds()))
             .withExpiresAt(Date(expiresAt.toEpochMilliseconds()))
             .sign(jwtConfig.algorithm)
