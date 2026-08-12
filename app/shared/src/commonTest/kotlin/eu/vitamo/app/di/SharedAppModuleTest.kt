@@ -1,5 +1,7 @@
 package eu.vitamo.app.di
 
+import eu.vitamo.app.features.auth.api.AuthApiConfig
+import eu.vitamo.app.infrastructure.di.sharedAppModule
 import org.koin.dsl.koinApplication
 import kotlin.test.Test
 import kotlin.test.assertSame
@@ -12,8 +14,8 @@ class SharedAppModuleTest {
             modules(sharedAppModule)
         }
 
-        val first = koinApp.koin.get<eu.vitamo.app.auth.api.AuthApiConfig>()
-        val second = koinApp.koin.get<eu.vitamo.app.auth.api.AuthApiConfig>()
+        val first = koinApp.koin.get<AuthApiConfig>()
+        val second = koinApp.koin.get<AuthApiConfig>()
 
         assertSame(first, second)
         koinApp.close()

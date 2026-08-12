@@ -6,6 +6,8 @@ import eu.vitamo.app.api.contracts.auth.SessionResponse
 import eu.vitamo.app.api.contracts.user.AuthenticatedUser
 import eu.vitamo.app.api.contracts.user.UserRole
 import eu.vitamo.app.api.result.ApiResult
+import eu.vitamo.app.features.auth.api.AuthApiConfig
+import eu.vitamo.app.features.auth.api.KtorAuthApi
 import eu.vitamo.app.serialization.AppJson
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine

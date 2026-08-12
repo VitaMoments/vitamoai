@@ -2,8 +2,7 @@ package eu.vitamo.app.ui.auth.password_recovery.forgot_password
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import eu.vitamo.app.api.result.ApiResult
-import eu.vitamo.app.auth.repository.AuthRepository
+import eu.vitamo.app.features.auth.repository.AuthRepository
 import eu.vitamo.app.repository.RepositoryResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

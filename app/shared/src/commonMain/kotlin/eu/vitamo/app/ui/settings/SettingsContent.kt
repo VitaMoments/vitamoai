@@ -10,8 +10,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -19,10 +21,15 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.lifecycle.viewmodel.compose.viewModel
+import eu.vitamo.app.features.settings.permissions.SettingsPermissionItem
+import eu.vitamo.app.infrastructure.permissions.AppPermission
+import eu.vitamo.app.infrastructure.permissions.PermissionStatus
 import eu.vitamo.app.ui.theme.ThemeMode
 import eu.vitamo.app.ui.theme.VitaDimensions
 
@@ -30,6 +37,8 @@ import eu.vitamo.app.ui.theme.VitaDimensions
 fun SettingsContent(
     state: SettingsState,
     onThemeModeSelected: (ThemeMode) -> Unit,
+    onPermissionSelected: (AppPermission) -> Unit,
+    onTestNotification: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val dimensions = VitaDimensions.current
@@ -65,6 +74,29 @@ fun SettingsContent(
                 onThemeModeSelected,
         )
 
+        if (state.missingPermissions.isNotEmpty()) {
+            PermissionsSettingsCard(
+                permissions = state.missingPermissions,
+                permissionInProgress =
+                    state.permissionInProgress,
+                enabled = !state.isPermissionsLoading,
+                onPermissionSelected =
+                    onPermissionSelected,
+            )
+        } else {
+            Button(onClick = onTestNotification) {
+                Text(
+                    text =
+                        "Test Notification",
+                    style =
+                        MaterialTheme.typography.bodyMedium,
+                    color =
+                        MaterialTheme.colorScheme
+                            .onPrimaryFixedVariant,
+                )
+            }
+        }
+
         if (state.isSaving) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -77,6 +109,154 @@ fun SettingsContent(
                     modifier = Modifier.padding(
                         dimensions.sm,
                     ),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PermissionsSettingsCard(
+    permissions: List<SettingsPermissionItem>,
+    permissionInProgress: AppPermission?,
+    enabled: Boolean,
+    onPermissionSelected: (AppPermission) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val dimensions = VitaDimensions.current
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor =
+                MaterialTheme.colorScheme.surfaceVariant,
+        ),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    dimensions.cardPaddingLarge,
+                ),
+        ) {
+            Text(
+                text = "Permissies",
+                style =
+                    MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+            )
+
+            Spacer(
+                modifier =
+                    Modifier.height(dimensions.xs),
+            )
+
+            Text(
+                text =
+                    "Voor onderstaande functies heeft VitaMo nog toegang nodig.",
+                style =
+                    MaterialTheme.typography.bodyMedium,
+                color =
+                    MaterialTheme.colorScheme
+                        .onSurfaceVariant,
+            )
+
+            Spacer(
+                modifier =
+                    Modifier.height(dimensions.md),
+            )
+
+            permissions.forEachIndexed {
+                    index,
+                    permissionItem ->
+
+                PermissionOption(
+                    item = permissionItem,
+                    isLoading =
+                        permissionInProgress ==
+                                permissionItem.permission,
+                    enabled =
+                        enabled &&
+                                permissionInProgress == null,
+                    onClick = {
+                        onPermissionSelected(
+                            permissionItem.permission,
+                        )
+                    },
+                )
+
+                if (
+                    index <
+                    permissions.lastIndex
+                ) {
+                    HorizontalDivider()
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PermissionOption(
+    item: SettingsPermissionItem,
+    isLoading: Boolean,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val dimensions = VitaDimensions.current
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(
+                vertical = dimensions.md,
+            ),
+        verticalAlignment =
+            Alignment.CenterVertically,
+    ) {
+        Column(
+            modifier = Modifier.weight(1f),
+        ) {
+            Text(
+                text =
+                    item.permission.title(),
+                style =
+                    MaterialTheme.typography.bodyLarge,
+                fontWeight =
+                    FontWeight.Medium,
+            )
+
+            Spacer(
+                modifier =
+                    Modifier.height(dimensions.xxs),
+            )
+
+            Text(
+                text =
+                    item.permission.description(),
+                style =
+                    MaterialTheme.typography.bodyMedium,
+                color =
+                    MaterialTheme.colorScheme
+                        .onSurfaceVariant,
+            )
+        }
+
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(
+                    dimensions.lg,
+                ),
+            )
+        } else {
+            TextButton(
+                onClick = onClick,
+                enabled = enabled,
+            ) {
+                Text(
+                    text =
+                        item.status.actionLabel(),
                 )
             }
         }
@@ -220,5 +400,38 @@ private fun ThemeModeOption(
                     MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+    }
+}
+
+private fun AppPermission.title(): String {
+    return when (this) {
+        AppPermission.NOTIFICATIONS ->
+            "Notificaties"
+    }
+}
+
+private fun AppPermission.description(): String {
+    return when (this) {
+        AppPermission.NOTIFICATIONS ->
+            "Ontvang meldingen over belangrijke gebeurtenissen."
+    }
+}
+
+private fun PermissionStatus.actionLabel(): String {
+    return when (this) {
+        PermissionStatus.NOT_DETERMINED ->
+            "Toestaan"
+
+        PermissionStatus.DENIED ->
+            "Opnieuw toestaan"
+
+        PermissionStatus.DENIED_ALWAYS ->
+            "Instellingen"
+
+        PermissionStatus.GRANTED,
+        PermissionStatus.PARTIAL_GRANTED ->
+            "Toegestaan"
+
+        PermissionStatus.BUSY -> "Probeer opnieuw"
     }
 }

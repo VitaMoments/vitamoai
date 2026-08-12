@@ -39,6 +39,7 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.ktor.client.okhttp)
+            implementation(libs.androidx.core.ktx)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
@@ -80,6 +81,10 @@ kotlin {
             implementation(
                 libs.multiplatform.settings.no.arg,
             )
+
+            implementation(libs.grant.core)
+            implementation(libs.grant.core.koin)
+            implementation(libs.grant.compose)
 
         }
         commonTest.dependencies {

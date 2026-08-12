@@ -1,10 +1,11 @@
 package eu.vitamo.app.network.auth
 
 import eu.vitamo.app.api.result.ApiResult
-import eu.vitamo.app.auth.api.AuthApi
-import eu.vitamo.app.auth.api.AuthApiConfig
+import eu.vitamo.app.features.auth.api.AuthApi
+import eu.vitamo.app.features.auth.api.AuthApiConfig
 import eu.vitamo.app.network.AuthCookieStorage
 import eu.vitamo.app.network.helper.isUnauthorized
+import io.ktor.client.plugins.cookies.get
 import io.ktor.http.Url
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -76,6 +77,14 @@ class AuthSessionCoordinator(
         cookieStorage.clearAuthCookies()
         _state.value = AuthStatus.Unauthenticated
     }
+
+    suspend fun getAccessCookie(): String? =
+        cookieStorage
+            .get(Url(authApiConfig.baseUrl))[ACCESS_TOKEN_COOKIE]?.value
+
+    suspend fun getRefreshCookie(): String? =
+        cookieStorage
+            .get(Url(authApiConfig.baseUrl))[REFRESH_TOKEN_COOKIE]?.value
 
     suspend fun hasAuthCookies(): Boolean {
         return cookieStorage

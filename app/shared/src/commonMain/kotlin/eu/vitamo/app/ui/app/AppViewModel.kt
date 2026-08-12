@@ -2,7 +2,7 @@ package eu.vitamo.app.ui.app
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import eu.vitamo.app.storage.AppPreferencesStorage
+import eu.vitamo.app.infrastructure.storage.AppPreferencesStorage
 import eu.vitamo.app.ui.theme.ThemeMode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

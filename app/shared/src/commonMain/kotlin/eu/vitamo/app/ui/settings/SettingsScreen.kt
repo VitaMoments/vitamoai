@@ -11,6 +11,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -22,6 +24,12 @@ fun SettingsScreen(
 
     val snackbarHostState = remember {
         SnackbarHostState()
+    }
+
+    LifecycleEventEffect(
+        event = Lifecycle.Event.ON_RESUME,
+    ) {
+        viewModel.refreshPermissions()
     }
 
     LaunchedEffect(
@@ -43,6 +51,9 @@ fun SettingsScreen(
         SettingsContent(
             state = state,
             onThemeModeSelected = viewModel::setThemeMode,
+            onPermissionSelected =
+                viewModel::requestPermission,
+            onTestNotification = viewModel::sendTestNotification,
             modifier = Modifier.fillMaxSize(),
         )
 

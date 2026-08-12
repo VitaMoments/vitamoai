@@ -4,8 +4,8 @@ import eu.vitamo.app.api.contracts.auth.LoginResponse
 import eu.vitamo.app.api.contracts.auth.SessionResponse
 import eu.vitamo.app.api.result.ApiError
 import eu.vitamo.app.api.result.ApiResult
-import eu.vitamo.app.auth.api.AuthApi
-import eu.vitamo.app.auth.api.AuthApiConfig
+import eu.vitamo.app.features.auth.api.AuthApi
+import eu.vitamo.app.features.auth.api.AuthApiConfig
 import eu.vitamo.app.network.ClearableCookieStorage
 import eu.vitamo.app.testsupport.sessionResponse
 import io.ktor.http.Cookie

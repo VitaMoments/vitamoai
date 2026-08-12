@@ -3,7 +3,7 @@ package eu.vitamo.app.ui.auth.login
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import eu.vitamo.app.api.contracts.errorcodes.AuthErrorCode
-import eu.vitamo.app.auth.repository.AuthRepository
+import eu.vitamo.app.features.auth.repository.AuthRepository
 import eu.vitamo.app.network.helper.authErrorCodeOrNull
 import eu.vitamo.app.repository.RepositoryError
 import eu.vitamo.app.repository.RepositoryResult
