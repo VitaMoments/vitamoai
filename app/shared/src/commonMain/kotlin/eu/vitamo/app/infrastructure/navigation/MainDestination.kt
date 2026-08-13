@@ -29,4 +29,12 @@ sealed interface MainDestination : AppDestination {
         override val route = "settings"
         override val title = "Settings"
     }
+
+    @Serializable
+    data class FriendRequests(
+        val userId: String? = null
+    ): MainDestination {
+        override val title = "FriendRequests"
+        override val route = "friend-requests"
+    }
 }

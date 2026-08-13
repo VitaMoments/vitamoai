@@ -17,6 +17,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import eu.vitamo.app.api.contracts.notification.PushNotificationAction
 import eu.vitamo.app.infrastructure.navigation.helper.parseAuthDeepLink
 import eu.vitamo.app.infrastructure.navigation.helper.setRoot
 import eu.vitamo.app.network.auth.AuthSessionCoordinator
@@ -28,15 +29,20 @@ import eu.vitamo.app.ui.auth.registration.RegistrationScreen
 import eu.vitamo.app.ui.auth.verification.VerificationScreen
 import eu.vitamo.app.ui.home.HomeScreen
 import eu.vitamo.app.ui.settings.SettingsScreen
+import eu.vitamo.app.ui.user.friends.FriendRequestsScreen
 import eu.vitamo.app.ui.user.profile.ProfileScreen
 import eu.vitamo.app.ui.user.search.SearchUsersScreen
 import kotlinx.coroutines.launch
+import kotlin.uuid.Uuid
 
 @Composable
 fun NavigationRoot(
     modifier: Modifier = Modifier,
     initialDeepLink: String? = null,
-    authSessionCoordinator: AuthSessionCoordinator,
+    notificationAction: PushNotificationAction? = null,
+    onNotificationActionConsumed: () -> Unit = {},
+    authSessionCoordinator:
+    AuthSessionCoordinator,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val authState = authSessionCoordinator.state
@@ -77,6 +83,23 @@ fun NavigationRoot(
             initialDestination,
         )
 
+        LaunchedEffect(
+            notificationAction,
+            authState,
+        ) {
+            val action = notificationAction ?: return@LaunchedEffect
+
+            if (authState != AuthStatus.Authenticated) { return@LaunchedEffect }
+
+            when (action) {
+                is PushNotificationAction.OpenFriendRequests -> {
+                    backStack.setRoot(MainDestination.FriendRequests(userId = action.userId?.toString()))
+                }
+            }
+
+            onNotificationActionConsumed()
+        }
+
         val navigationContent: @Composable (Modifier) -> Unit =
             { navigationModifier ->
                 NavDisplay(
@@ -112,6 +135,19 @@ fun NavigationRoot(
                             SearchUsersScreen()
                         }
 
+                        entry<MainDestination.FriendRequests> {
+                                destination ->
+
+                            FriendRequestsScreen(
+                                initialUserId =
+                                    destination.userId
+                                        ?.let { value ->
+                                            runCatching {
+                                                Uuid.parse(value)
+                                            }.getOrNull()
+                                        },
+                            )
+                        }
 
                         /*
                          * Auth destinations zitten bewust in dezelfde

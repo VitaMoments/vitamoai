@@ -158,6 +158,7 @@ private fun MainDestination.drawerRoot(): MainDestination =
         MainDestination.Profile -> MainDestination.Profile
         MainDestination.Settings -> MainDestination.Settings
         MainDestination.Users -> MainDestination.Users
+        is MainDestination.FriendRequests -> this
     }
 
 private fun MainDestination.navigationTitle(): String = title

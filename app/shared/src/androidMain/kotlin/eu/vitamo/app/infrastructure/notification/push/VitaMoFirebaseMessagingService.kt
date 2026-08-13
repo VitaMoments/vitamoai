@@ -3,6 +3,8 @@ package eu.vitamo.app.infrastructure.notification.push
 import android.util.Log
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import eu.vitamo.app.api.contracts.notification.PushNotificationAction
+import eu.vitamo.app.api.contracts.notification.PushNotificationDataKeys
 import eu.vitamo.app.features.device.service.FirebaseInstallationIdSynchronizer
 import eu.vitamo.app.infrastructure.notification.AppNotification
 import eu.vitamo.app.infrastructure.notification.AppNotificationChannel
@@ -105,22 +107,23 @@ class VitaMoFirebaseMessagingService :
 
     private fun RemoteMessage.toAppNotification():
             AppNotification? {
-
-        val title = notification
-            ?.title
-            ?.trim()
-            ?.takeIf(String::isNotEmpty)
-            ?: data[DATA_KEY_TITLE]
+        val title =
+            data[PushNotificationDataKeys.TITLE]
                 ?.trim()
                 ?.takeIf(String::isNotEmpty)
+                ?: notification
+                    ?.title
+                    ?.trim()
+                    ?.takeIf(String::isNotEmpty)
 
-        val body = notification
-            ?.body
-            ?.trim()
-            ?.takeIf(String::isNotEmpty)
-            ?: data[DATA_KEY_BODY]
+        val body =
+            data[PushNotificationDataKeys.BODY]
                 ?.trim()
                 ?.takeIf(String::isNotEmpty)
+                ?: notification
+                    ?.body
+                    ?.trim()
+                    ?.takeIf(String::isNotEmpty)
 
         if (
             title == null &&
@@ -129,13 +132,29 @@ class VitaMoFirebaseMessagingService :
             return null
         }
 
+        val action =
+            PushNotificationAction.from(
+                type =
+                    data[
+                        PushNotificationDataKeys.ACTION
+                    ],
+                targetId =
+                    data[
+                        PushNotificationDataKeys.TARGET_ID
+                    ],
+            )
+
         return AppNotification(
             id = messageId
                 ?: "fcm-${System.currentTimeMillis()}",
-            title = title
-                ?: DEFAULT_NOTIFICATION_TITLE,
-            body = body.orEmpty(),
-            channel = AppNotificationChannel.GENERAL,
+            title =
+                title ?: DEFAULT_NOTIFICATION_TITLE,
+            body =
+                body.orEmpty(),
+            channel =
+                AppNotificationChannel.GENERAL,
+            action =
+                action,
         )
     }
 

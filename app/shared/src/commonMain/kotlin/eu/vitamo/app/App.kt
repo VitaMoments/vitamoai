@@ -1,6 +1,7 @@
 package eu.vitamo.app
 
 import androidx.compose.runtime.*
+import eu.vitamo.app.api.contracts.notification.PushNotificationAction
 import eu.vitamo.app.features.device.service.FirebaseInstallationIdSynchronizer
 import eu.vitamo.app.network.auth.AuthSessionCoordinator
 import eu.vitamo.app.infrastructure.navigation.NavigationRoot
@@ -12,7 +13,9 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun App(
-    initialDeepLink: String? = null
+    initialDeepLink: String? = null,
+    notificationAction: PushNotificationAction? = null,
+    onNotificationActionConsumed: () -> Unit = {},
 ) {
     val authSessionCoordinator: AuthSessionCoordinator = koinInject()
     val appViewModel: AppViewModel = koinViewModel()
@@ -33,6 +36,8 @@ fun App(
     AppTheme(mode = appState.themeMode) {
         NavigationRoot(
             initialDeepLink = initialDeepLink,
+            notificationAction = notificationAction,
+            onNotificationActionConsumed = onNotificationActionConsumed,
             authSessionCoordinator = authSessionCoordinator,
         )
     }

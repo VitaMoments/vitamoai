@@ -63,10 +63,10 @@ class SendFriendRequestUseCase(
             is RepositoryResult.Success -> {
                 when(val devicesResult = deviceRepository.findActiveByUserId(targetUserId)) {
                     is RepositoryResult.Success<List<DeviceRecord>> -> {
-                        val ids = devicesResult.data.mapNotNull { it.firebaseInstallationId }
-                        notificationService.sendToDevices(ids,
-                            PushNotification.FriendRequestReceived(currentUser.displayName)
-                        )
+                        runCatching {
+                            val ids = devicesResult.data.mapNotNull { it.firebaseInstallationId }
+                            notificationService.sendToDevices(ids, PushNotification.FriendRequestReceived(currentUser.id, currentUser.displayName))
+                        }
                     }
                     else -> Unit
                 }
