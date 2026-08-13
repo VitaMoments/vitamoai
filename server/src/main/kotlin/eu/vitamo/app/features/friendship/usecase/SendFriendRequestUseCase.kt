@@ -1,19 +1,24 @@
 package eu.vitamo.app.features.friendship.usecase
 
+import com.google.firebase.database.core.Repo
 import eu.vitamo.app.api.contracts.user.UserWithContext
+import eu.vitamo.app.features.device.model.DeviceRecord
+import eu.vitamo.app.features.device.repository.DeviceRepository
 import eu.vitamo.app.features.friendship.error.FriendshipRepositoryErrors
 import eu.vitamo.app.features.friendship.repository.FriendshipRepository
 import eu.vitamo.app.features.user.context.UserContextLoader
 import eu.vitamo.app.features.user.repository.UserRepository
+import eu.vitamo.app.infrastructure.notification.push.model.PushNotification
+import eu.vitamo.app.infrastructure.notification.push.service.PushNotificationService
 import eu.vitamo.app.repository.RepositoryResult
 import kotlin.uuid.Uuid
 
 class SendFriendRequestUseCase(
     private val userRepository: UserRepository,
-    private val friendshipRepository:
-    FriendshipRepository,
-    private val userContextLoader:
-    UserContextLoader,
+    private val deviceRepository: DeviceRepository,
+    private val friendshipRepository: FriendshipRepository,
+    private val userContextLoader: UserContextLoader,
+    private val notificationService: PushNotificationService
 ) {
 
     suspend operator fun invoke(
@@ -26,6 +31,10 @@ class SendFriendRequestUseCase(
                     FriendshipRepositoryErrors
                         .cannotFriendSelf(),
             )
+        }
+        val currentUser = when (val result = userRepository.findById(currentUserId)) {
+            is RepositoryResult.Success -> { result.data }
+            is RepositoryResult.Error -> return result
         }
 
         val targetUser = when (
@@ -51,8 +60,17 @@ class SendFriendRequestUseCase(
                         targetUserId,
                 )
         ) {
-            is RepositoryResult.Success -> Unit
-
+            is RepositoryResult.Success -> {
+                when(val devicesResult = deviceRepository.findActiveByUserId(targetUserId)) {
+                    is RepositoryResult.Success<List<DeviceRecord>> -> {
+                        val ids = devicesResult.data.mapNotNull { it.firebaseInstallationId }
+                        notificationService.sendToDevices(ids,
+                            PushNotification.FriendRequestReceived(currentUser.displayName)
+                        )
+                    }
+                    else -> Unit
+                }
+            }
             is RepositoryResult.Error -> {
                 return result
             }

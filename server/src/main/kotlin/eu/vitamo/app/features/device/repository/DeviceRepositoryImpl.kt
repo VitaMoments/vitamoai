@@ -1,16 +1,22 @@
 package eu.vitamo.app.features.device.repository
 
+import com.google.cloud.firestore.pipeline.stages.Where
 import eu.vitamo.app.api.contracts.device.ClientContext
 import eu.vitamo.app.database.helpers.dbQuery
 import eu.vitamo.app.features.device.entity.DeviceEntity
 import eu.vitamo.app.features.device.mapper.toRecord
 import eu.vitamo.app.features.device.model.DeviceRecord
+import eu.vitamo.app.features.device.table.DevicesTable
 import eu.vitamo.app.features.user.table.UsersTable
 import eu.vitamo.app.repository.RepositoryError
 import eu.vitamo.app.repository.RepositoryResult
+import org.jetbrains.exposed.v1.core.and
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.isNotNull
+import org.jetbrains.exposed.v1.core.isNull
 
 class DeviceRepositoryImpl : DeviceRepository {
 
@@ -81,8 +87,7 @@ class DeviceRepositoryImpl : DeviceRepository {
     override suspend fun findById(
         deviceId: Uuid,
     ): RepositoryResult<DeviceRecord> = dbQuery {
-        val device =
-            DeviceEntity.findById(deviceId)
+        val device = DeviceEntity.findById(deviceId)
 
         if (
             device == null ||
@@ -97,6 +102,23 @@ class DeviceRepositoryImpl : DeviceRepository {
 
         RepositoryResult.Success(
             device.toRecord(),
+        )
+    }
+
+    override suspend fun findActiveByUserId(
+        userId: Uuid,
+    ): RepositoryResult<List<DeviceRecord>> = dbQuery {
+        val devices = DeviceEntity.find {
+            (DevicesTable.userId eq
+                EntityID(
+                    userId,
+                    UsersTable,
+                )) and
+                DevicesTable.deletedAt.isNull() and
+                DevicesTable.firebaseInstallationId.isNotNull()
+            }.map { device -> device.toRecord() }
+        RepositoryResult.Success(
+            devices,
         )
     }
 

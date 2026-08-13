@@ -16,6 +16,10 @@ interface DeviceRepository {
         deviceId: Uuid,
     ): RepositoryResult<DeviceRecord>
 
+    suspend fun findActiveByUserId(
+        userId: Uuid
+    ) : RepositoryResult<List<DeviceRecord>>
+
     suspend fun updateFirebaseInstallationId(
         deviceId: Uuid,
         firebaseInstallationId: String?,

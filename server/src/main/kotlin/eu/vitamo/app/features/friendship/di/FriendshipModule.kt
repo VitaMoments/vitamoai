@@ -38,6 +38,8 @@ val friendshipModule = module {
             userRepository = get(),
             friendshipRepository = get(),
             userContextLoader = get(),
+            notificationService = get(),
+            deviceRepository = get()
         )
     }
 
