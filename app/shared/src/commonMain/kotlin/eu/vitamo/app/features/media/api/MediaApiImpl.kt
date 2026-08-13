@@ -16,7 +16,6 @@ import io.ktor.http.HttpHeaders
 
 class MediaApiImpl(
     private val client: HttpClient,
-    private val config: MediaApiConfig,
     private val authSessionCoordinator: AuthSessionCoordinator,
 ) : MediaApi {
 
@@ -43,7 +42,7 @@ class MediaApiImpl(
             authSessionCoordinator = authSessionCoordinator,
         ) {
             client.post(
-                urlString = "${config.baseUrl}/images",
+                urlString = "media/images",
             ) {
                 setBody(
                     MultiPartFormDataContent(

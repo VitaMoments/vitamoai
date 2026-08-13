@@ -2,7 +2,6 @@ package eu.vitamo.app.network.auth
 
 import eu.vitamo.app.api.result.ApiResult
 import eu.vitamo.app.features.auth.api.AuthApi
-import eu.vitamo.app.features.auth.api.AuthApiConfig
 import eu.vitamo.app.network.AuthCookieStorage
 import eu.vitamo.app.network.helper.isUnauthorized
 import io.ktor.client.plugins.cookies.get
@@ -13,7 +12,6 @@ import kotlinx.coroutines.flow.asStateFlow
 
 class AuthSessionCoordinator(
     private val authApi: AuthApi,
-    private val authApiConfig: AuthApiConfig,
     private val cookieStorage: AuthCookieStorage,
 ) {
     private val _state = MutableStateFlow<AuthStatus>(
@@ -80,15 +78,15 @@ class AuthSessionCoordinator(
 
     suspend fun getAccessCookie(): String? =
         cookieStorage
-            .get(Url(authApiConfig.baseUrl))[ACCESS_TOKEN_COOKIE]?.value
+            .get(Url("auth/"))[ACCESS_TOKEN_COOKIE]?.value
 
     suspend fun getRefreshCookie(): String? =
         cookieStorage
-            .get(Url(authApiConfig.baseUrl))[REFRESH_TOKEN_COOKIE]?.value
+            .get(Url("auth/"))[REFRESH_TOKEN_COOKIE]?.value
 
     suspend fun hasAuthCookies(): Boolean {
         return cookieStorage
-            .get(Url(authApiConfig.baseUrl))
+            .get(Url("auth/"))
             .any { cookie ->
                 cookie.name == ACCESS_TOKEN_COOKIE ||
                         cookie.name == REFRESH_TOKEN_COOKIE

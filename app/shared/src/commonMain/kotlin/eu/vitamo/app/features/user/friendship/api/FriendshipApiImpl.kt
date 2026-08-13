@@ -18,7 +18,6 @@ import kotlin.uuid.Uuid
 
 class FriendshipApiImpl(
     private val client: HttpClient,
-    private val config: FriendshipApiConfig,
     private val authSessionCoordinator: AuthSessionCoordinator,
 ) : FriendshipApi {
 
@@ -30,7 +29,7 @@ class FriendshipApiImpl(
         ) {
             client.post(
                 urlString =
-                    "${config.baseUrl}/requests",
+                    "friendships/requests",
             ) {
                 contentType(
                     ContentType.Application.Json,
@@ -53,7 +52,7 @@ class FriendshipApiImpl(
         ) {
             client.post(
                 urlString =
-                    "${config.baseUrl}/requests/$friendshipId/accept",
+                    "friendships/requests/$friendshipId/accept",
             )
         }
     }
@@ -66,7 +65,7 @@ class FriendshipApiImpl(
         ) {
             client.delete(
                 urlString =
-                    "${config.baseUrl}/requests/$friendshipId",
+                    "friendships/requests/$friendshipId",
             )
         }
     }
@@ -79,7 +78,7 @@ class FriendshipApiImpl(
         ) {
             client.delete(
                 urlString =
-                    "${config.baseUrl}/$friendshipId",
+                    "friendships/$friendshipId",
             )
         }
     }
@@ -93,7 +92,7 @@ class FriendshipApiImpl(
         ) {
             client.get(
                 urlString =
-                    "${config.baseUrl}/requests/incoming",
+                    "friendships/requests/incoming",
             ) {
                 parameter(
                     key = "limit",
@@ -117,7 +116,7 @@ class FriendshipApiImpl(
         ) {
             client.get(
                 urlString =
-                    "${config.baseUrl}/requests/outgoing",
+                    "friendships/requests/outgoing",
             ) {
                 parameter(
                     key = "limit",
@@ -139,10 +138,7 @@ class FriendshipApiImpl(
         return safeAuthenticatedApiCall(
             authSessionCoordinator = authSessionCoordinator,
         ) {
-            client.get(
-                urlString =
-                    config.baseUrl,
-            ) {
+            client.get(urlString = "friendships/") {
                 parameter(
                     key = "limit",
                     value = limit,

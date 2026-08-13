@@ -50,4 +50,6 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
 
     implementation(libs.metadata.extractor)
+
+    implementation(libs.firebase.admin)
 }

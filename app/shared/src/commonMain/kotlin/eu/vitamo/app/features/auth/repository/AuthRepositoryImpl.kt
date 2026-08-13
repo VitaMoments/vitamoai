@@ -12,6 +12,8 @@ import eu.vitamo.app.api.contracts.user.AuthenticatedUser
 import eu.vitamo.app.api.result.ApiResult
 import eu.vitamo.app.features.auth.api.AuthApi
 import eu.vitamo.app.features.device.provider.ClientContextProvider
+import eu.vitamo.app.features.device.service.FirebaseInstallationIdSynchronizer
+import eu.vitamo.app.infrastructure.storage.FirebaseInstallationIdStorage
 import eu.vitamo.app.mapper.toRepositoryError
 import eu.vitamo.app.mapper.toRepositoryResult
 import eu.vitamo.app.network.auth.AuthSessionCoordinator
@@ -21,6 +23,10 @@ class AuthRepositoryImpl(
     private val authApi: AuthApi,
     private val authSessionCoordinator: AuthSessionCoordinator,
     private val clientContextProvider: ClientContextProvider,
+    private val firebaseInstallationIdStorage:
+    FirebaseInstallationIdStorage,
+    private val firebaseInstallationIdSynchronizer:
+    FirebaseInstallationIdSynchronizer,
 ) : AuthRepository {
 
     override suspend fun register(
@@ -46,17 +52,25 @@ class AuthRepositoryImpl(
         val clientContext =
             clientContextProvider.get()
 
+
+        val firebaseInstallationId =
+            firebaseInstallationIdStorage.get()
+
         val result = authApi.login(
             LoginRequest(
                 email = email,
                 password = password,
                 clientContext = clientContext,
+                firebaseInstallationId = firebaseInstallationId
             ),
         )
 
         return when (result) {
             is ApiResult.Success -> {
                 authSessionCoordinator.markAuthenticated()
+
+                firebaseInstallationIdSynchronizer
+                    .synchronizeStored()
 
                 RepositoryResult.Success(
                     result.data.user,

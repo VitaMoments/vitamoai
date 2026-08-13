@@ -32,7 +32,7 @@ fun DeviceEntity.toRecord(): DeviceRecord =
         deviceName = deviceName,
         deviceModel = deviceModel,
 
-        fcmToken = fcmToken,
+        firebaseInstallationId = firebaseInstallationId,
 
         lastSeenAt = lastSeenAt,
         createdAt = createdAt,

@@ -23,7 +23,7 @@ class DeviceEntity(id: EntityID<Uuid>,
     var deviceName by DevicesTable.deviceName
     var deviceModel by DevicesTable.deviceModel
 
-    var fcmToken by DevicesTable.fcmToken
+    var firebaseInstallationId by DevicesTable.firebaseInstallationId
 
     var lastSeenAt by DevicesTable.lastSeenAt
     var createdAt by DevicesTable.createdAt

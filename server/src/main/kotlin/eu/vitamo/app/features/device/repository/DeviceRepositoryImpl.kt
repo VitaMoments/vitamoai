@@ -17,6 +17,7 @@ class DeviceRepositoryImpl : DeviceRepository {
     override suspend fun upsert(
         userId: Uuid,
         context: ClientContext,
+        firebaseInstallationId: String?,
     ): RepositoryResult<DeviceRecord> = dbQuery {
         val now =
             Clock.System.now().epochSeconds
@@ -45,19 +46,16 @@ class DeviceRepositoryImpl : DeviceRepository {
                 updatedAt = now
                 lastSeenAt = now
                 deletedAt = null
-                fcmToken = null
+
+                this.firebaseInstallationId =
+                    firebaseInstallationId
             }
         } else {
-            /*
-             * Hetzelfde device moet bij dezelfde gebruiker horen.
-             *
-             * Account switching kunnen we later bewust afhandelen,
-             * bijvoorbeeld door oude sessies eerst te revoken.
-             */
             if (existing.userId.value != userId) {
                 return@dbQuery RepositoryResult.Error(
                     RepositoryError.Conflict(
-                        message = "Device is already registered to another user.",
+                        message =
+                            "Device is already registered to another user.",
                     ),
                 )
             }
@@ -66,6 +64,11 @@ class DeviceRepositoryImpl : DeviceRepository {
                 context = context,
                 now = now,
             )
+
+            if (firebaseInstallationId != null) {
+                existing.firebaseInstallationId =
+                    firebaseInstallationId
+            }
 
             existing
         }
@@ -95,6 +98,38 @@ class DeviceRepositoryImpl : DeviceRepository {
         RepositoryResult.Success(
             device.toRecord(),
         )
+    }
+
+    override suspend fun updateFirebaseInstallationId(
+        deviceId: Uuid,
+        firebaseInstallationId: String?,
+    ): RepositoryResult<Unit> = dbQuery {
+        val device =
+            DeviceEntity.findById(
+                deviceId,
+            )
+
+        if (
+            device == null ||
+            device.deletedAt != null
+        ) {
+            return@dbQuery RepositoryResult.Error(
+                RepositoryError.NotFound(
+                    message = "Device not found.",
+                ),
+            )
+        }
+
+        val now =
+            Clock.System.now().epochSeconds
+
+        device.firebaseInstallationId =
+            firebaseInstallationId
+
+        device.updatedAt = now
+        device.lastSeenAt = now
+
+        RepositoryResult.Success(Unit)
     }
 
     private fun DeviceEntity.applyContext(

@@ -5,7 +5,6 @@ import eu.vitamo.app.api.contracts.auth.SessionResponse
 import eu.vitamo.app.api.result.ApiError
 import eu.vitamo.app.api.result.ApiResult
 import eu.vitamo.app.features.auth.api.AuthApi
-import eu.vitamo.app.features.auth.api.AuthApiConfig
 import eu.vitamo.app.network.ClearableCookieStorage
 import eu.vitamo.app.testsupport.sessionResponse
 import io.ktor.http.Cookie
@@ -24,7 +23,7 @@ class AuthSessionCoordinatorTest {
         val storage = ClearableCookieStorage()
         storage.addCookie(Url("https://example.com"), Cookie(name = "access_token", value = "access"))
         storage.addCookie(Url("https://example.com"), Cookie(name = "refresh_token", value = "refresh"))
-        val coordinator = AuthSessionCoordinator(api, AuthApiConfig(baseUrl = "https://example.com/api/auth"), storage)
+        val coordinator = AuthSessionCoordinator(api, storage)
 
         coordinator.bootstrap()
 
@@ -42,7 +41,7 @@ class AuthSessionCoordinatorTest {
         val storage = ClearableCookieStorage()
         storage.addCookie(Url("https://example.com"), Cookie(name = "access_token", value = "access"))
         storage.addCookie(Url("https://example.com"), Cookie(name = "refresh_token", value = "refresh"))
-        val coordinator = AuthSessionCoordinator(api, AuthApiConfig(baseUrl = "https://example.com/api/auth"), storage)
+        val coordinator = AuthSessionCoordinator(api, storage)
 
         coordinator.bootstrap()
 

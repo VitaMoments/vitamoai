@@ -71,6 +71,8 @@ class LoginUseCase(
         val device = getOrCreateDevice(
             userId = user.id,
             context = request.clientContext,
+            firebaseInstallationId =
+                request.firebaseInstallationId,
         )
 
         val accessToken =
@@ -98,11 +100,13 @@ class LoginUseCase(
     private suspend fun getOrCreateDevice(
         userId: Uuid,
         context: ClientContext,
+        firebaseInstallationId: String?
     ): DeviceRecord {
         return when (
             val result = deviceRepository.upsert(
                 userId = userId,
                 context = context,
+                firebaseInstallationId = firebaseInstallationId
             )
         ) {
             is RepositoryResult.Success ->

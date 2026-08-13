@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS devices (
     os_version VARCHAR(100),
     device_name VARCHAR(255),
     device_model VARCHAR(255),
-    fcm_token TEXT,
+    firebase_installation_id TEXT,
     last_seen_at_epoch_seconds BIGINT,
     created_at_epoch_seconds BIGINT NOT NULL,
     updated_at_epoch_seconds BIGINT NOT NULL,
@@ -58,9 +58,9 @@ CREATE TABLE IF NOT EXISTS devices (
 CREATE INDEX IF NOT EXISTS devices_user_id_idx
     ON devices (user_id);
 
-CREATE UNIQUE INDEX IF NOT EXISTS devices_fcm_token_uidx
-    ON devices (fcm_token)
-    WHERE fcm_token IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS devices_firebase_installation_id_uidx
+    ON devices (firebase_installation_id)
+    WHERE firebase_installation_id IS NOT NULL;
 
 -- -----------------------------------------------------------------------------
 -- Refresh tokens

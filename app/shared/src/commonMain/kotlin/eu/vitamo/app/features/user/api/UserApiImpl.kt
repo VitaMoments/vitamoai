@@ -21,7 +21,6 @@ import kotlin.uuid.Uuid
 
 class UserApiImpl(
     private val client: HttpClient,
-    private val config: UserApiConfig,
     private val authSessionCoordinator: AuthSessionCoordinator,
 ) : UserApi {
 
@@ -32,7 +31,7 @@ class UserApiImpl(
             authSessionCoordinator = authSessionCoordinator,
         ) {
             client.get(
-                urlString = "${config.baseUrl}/$userId",
+                urlString = "users/$userId",
             )
         }
     }
@@ -42,7 +41,7 @@ class UserApiImpl(
             authSessionCoordinator = authSessionCoordinator
         ) {
             client.get(
-                urlString = "${config.baseUrl}/me"
+                urlString = "users/me"
             )
         }
     }
@@ -56,7 +55,7 @@ class UserApiImpl(
             authSessionCoordinator = authSessionCoordinator,
         ) {
             client.get(
-                urlString = "${config.baseUrl}/search",
+                urlString = "users/search",
             ) {
                 query
                     ?.trim()
@@ -102,7 +101,7 @@ class UserApiImpl(
                 authSessionCoordinator = authSessionCoordinator,
             ) {
                 client.put(
-                    urlString = "${config.baseUrl}/me/profile-image",
+                    urlString = "users/me/profile-image",
                 ) {
                     setBody(
                         MultiPartFormDataContent(

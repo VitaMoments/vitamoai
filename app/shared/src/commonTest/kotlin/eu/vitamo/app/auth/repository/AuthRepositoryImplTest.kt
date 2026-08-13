@@ -15,7 +15,6 @@ import eu.vitamo.app.api.contracts.auth.VerifyEmailRequest
 import eu.vitamo.app.api.contracts.auth.VerifyEmailResponse
 import eu.vitamo.app.api.result.ApiResult
 import eu.vitamo.app.features.auth.api.AuthApi
-import eu.vitamo.app.features.auth.api.AuthApiConfig
 import eu.vitamo.app.features.auth.repository.AuthRepositoryImpl
 import eu.vitamo.app.network.AuthCookieStorage
 import eu.vitamo.app.network.ClearableCookieStorage

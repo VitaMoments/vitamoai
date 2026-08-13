@@ -27,6 +27,7 @@ data class LoginRequest(
     val email: String,
     val password: String,
     val clientContext: ClientContext,
+    val firebaseInstallationId: String? = null,
 )
 
 @Serializable

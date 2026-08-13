@@ -25,14 +25,13 @@ import io.ktor.http.contentType
 
 class KtorAuthApi(
     private val client: HttpClient,
-    private val config: AuthApiConfig,
 ) : AuthApi {
 
     override suspend fun register(
         request: RegisterRequest,
     ): ApiResult<RegisterResponse> {
         return safeApiCall {
-            client.post("${config.baseUrl}/register") {
+            client.post("auth/register") {
                 contentType(ContentType.Application.Json)
                 setBody(request)
             }
@@ -43,7 +42,7 @@ class KtorAuthApi(
         request: LoginRequest,
     ): ApiResult<LoginResponse> {
         return safeApiCall {
-            client.post("${config.baseUrl}/login") {
+            client.post("auth/login") {
                 contentType(ContentType.Application.Json)
                 setBody(request)
             }
@@ -54,7 +53,7 @@ class KtorAuthApi(
         request: VerifyEmailRequest,
     ): ApiResult<VerifyEmailResponse> {
         return safeApiCall {
-            client.post("${config.baseUrl}/verify-email") {
+            client.post("auth/verify-email") {
                 contentType(ContentType.Application.Json)
                 setBody(request)
             }
@@ -65,7 +64,7 @@ class KtorAuthApi(
         request: ResendEmailVerificationRequest,
     ): ApiResult<ResendEmailVerificationResponse> {
         return safeApiCall {
-            client.post("${config.baseUrl}/resend-email-verification") {
+            client.post("auth/resend-email-verification") {
                 contentType(ContentType.Application.Json)
                 setBody(request)
             }
@@ -74,25 +73,25 @@ class KtorAuthApi(
 
     override suspend fun session(): ApiResult<SessionResponse> {
         return safeApiCall {
-            client.get("${config.baseUrl}/session")
+            client.get("auth/session")
         }
     }
 
     override suspend fun refreshSession(): ApiResult<SessionResponse> {
         return safeApiCall {
-            client.post("${config.baseUrl}/refresh")
+            client.post("auth/refresh")
         }
     }
 
     override suspend fun logout(): ApiResult<Unit> {
         return safeApiUnitCall {
-            client.post("${config.baseUrl}/logout")
+            client.post("auth/logout")
         }
     }
 
     override suspend fun forgotPassword(request: ForgotPasswordRequest): ApiResult<ForgotPasswordResponse> {
         return safeApiCall {
-            client.post("${config.baseUrl}/forgot-password") {
+            client.post("auth/forgot-password") {
                 contentType(ContentType.Application.Json)
                 setBody(request)
             }
@@ -103,7 +102,7 @@ class KtorAuthApi(
         request: ResetPasswordRequest
     ): ApiResult<ResetPasswordResponse> {
         return safeApiCall {
-            client.post("${config.baseUrl}/reset-password") {
+            client.post("auth/reset-password") {
                 contentType(ContentType.Application.Json)
                 setBody(request)
             }

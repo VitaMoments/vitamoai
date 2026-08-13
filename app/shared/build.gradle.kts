@@ -40,6 +40,16 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.androidx.core.ktx)
+
+            implementation(
+                project.dependencies.platform(
+                    libs.firebase.bom,
+                ),
+            )
+
+            implementation(
+                libs.firebase.messaging,
+            )
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)

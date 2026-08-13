@@ -1,6 +1,5 @@
 package eu.vitamo.app.di
 
-import eu.vitamo.app.features.auth.api.AuthApiConfig
 import eu.vitamo.app.infrastructure.di.sharedAppModule
 import org.koin.dsl.koinApplication
 import kotlin.test.Test

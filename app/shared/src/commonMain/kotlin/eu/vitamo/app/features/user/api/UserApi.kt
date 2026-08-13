@@ -7,7 +7,6 @@ import eu.vitamo.app.features.media.model.PickedImage
 import kotlin.uuid.Uuid
 
 interface UserApi {
-
     suspend fun getUser(
         userId: Uuid,
     ): ApiResult<UserWithContext>

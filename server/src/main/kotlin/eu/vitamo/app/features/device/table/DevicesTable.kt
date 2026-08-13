@@ -48,8 +48,8 @@ object DevicesTable : UuidTable("devices") {
         length = 255,
     ).nullable()
 
-    val fcmToken = text(
-        name = "fcm_token",
+    val firebaseInstallationId = text(
+        name = "firebase_installation_id",
     ).nullable()
 
     val lastSeenAt = long(

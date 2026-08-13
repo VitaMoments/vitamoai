@@ -4,6 +4,7 @@ import eu.vitamo.app.serialization.AppJson
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.cookies.HttpCookies
+import io.ktor.client.plugins.defaultRequest
 import io.ktor.serialization.kotlinx.json.json
 
 fun createAppHttpClient(cookieStorage: AuthCookieStorage): HttpClient {
@@ -13,6 +14,9 @@ fun createAppHttpClient(cookieStorage: AuthCookieStorage): HttpClient {
         }
         install(HttpCookies) {
             storage = cookieStorage
+        }
+        defaultRequest {
+            url(DevNetworkConfig.API_BASE_URL + "/")
         }
     }
 }

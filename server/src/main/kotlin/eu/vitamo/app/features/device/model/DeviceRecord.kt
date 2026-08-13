@@ -18,7 +18,7 @@ data class DeviceRecord(
     val deviceName: String?,
     val deviceModel: String?,
 
-    val fcmToken: String?,
+    val firebaseInstallationId: String?,
 
     val lastSeenAt: Long?,
     val createdAt: Long,

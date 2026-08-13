@@ -9,9 +9,15 @@ interface DeviceRepository {
     suspend fun upsert(
         userId: Uuid,
         context: ClientContext,
+        firebaseInstallationId: String?,
     ): RepositoryResult<DeviceRecord>
 
     suspend fun findById(
         deviceId: Uuid,
     ): RepositoryResult<DeviceRecord>
+
+    suspend fun updateFirebaseInstallationId(
+        deviceId: Uuid,
+        firebaseInstallationId: String?,
+    ): RepositoryResult<Unit>
 }

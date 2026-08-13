@@ -9,6 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -29,6 +30,7 @@ import eu.vitamo.app.ui.home.HomeScreen
 import eu.vitamo.app.ui.settings.SettingsScreen
 import eu.vitamo.app.ui.user.profile.ProfileScreen
 import eu.vitamo.app.ui.user.search.SearchUsersScreen
+import kotlinx.coroutines.launch
 
 @Composable
 fun NavigationRoot(
@@ -36,6 +38,7 @@ fun NavigationRoot(
     initialDeepLink: String? = null,
     authSessionCoordinator: AuthSessionCoordinator,
 ) {
+    val coroutineScope = rememberCoroutineScope()
     val authState = authSessionCoordinator.state
         .collectAsState()
         .value
@@ -209,6 +212,12 @@ fun NavigationRoot(
                     currentDestination = currentDestination,
                     onDestinationSelected = { destination ->
                         backStack.setRoot(destination)
+                    },
+                    onLogoutClicked = {
+                        coroutineScope.launch {
+                            authSessionCoordinator.signOut()
+                            backStack.setRoot(AuthDestination.Login)
+                        }
                     },
                     modifier = modifier,
                 ) { innerPadding ->
