@@ -1,12 +1,12 @@
 package eu.vitamo.app.features.friendship.routes
 
+import eu.vitamo.app.api.contracts.friendship.FriendshipState
 import eu.vitamo.app.api.contracts.friendship.SendFriendRequestRequest
 import eu.vitamo.app.exception.ApiException
 import eu.vitamo.app.features.friendship.usecase.AcceptFriendRequestUseCase
 import eu.vitamo.app.features.friendship.usecase.DeleteFriendRequestUseCase
+import eu.vitamo.app.features.friendship.usecase.GetFriendRequestsUseCase
 import eu.vitamo.app.features.friendship.usecase.GetFriendsUseCase
-import eu.vitamo.app.features.friendship.usecase.GetIncomingFriendRequestsUseCase
-import eu.vitamo.app.features.friendship.usecase.GetOutgoingFriendRequestsUseCase
 import eu.vitamo.app.features.friendship.usecase.RemoveFriendshipUseCase
 import eu.vitamo.app.features.friendship.usecase.SendFriendRequestUseCase
 import eu.vitamo.app.infrastructure.network.helpers.handleResult
@@ -28,8 +28,7 @@ fun Route.friendshipRoutes(
     val acceptFriendRequestUseCase: AcceptFriendRequestUseCase by inject()
     val deleteFriendRequestUseCase: DeleteFriendRequestUseCase by inject()
     val removeFriendshipUseCase: RemoveFriendshipUseCase by inject()
-    val getIncomingFriendRequestsUseCase: GetIncomingFriendRequestsUseCase by inject()
-    val getOutgoingFriendRequestsUseCase: GetOutgoingFriendRequestsUseCase by inject()
+    val getFriendRequestsUseCase: GetFriendRequestsUseCase by inject()
     val getFriendsUseCase: GetFriendsUseCase by inject()
 
     route("/friendships") {
@@ -43,10 +42,8 @@ fun Route.friendshipRoutes(
             call.handleResult(
                 result =
                     sendFriendRequestUseCase(
-                        currentUserId =
-                            currentUserId,
-                        targetUserId =
-                            request.targetUserId,
+                        currentUserId = currentUserId,
+                        targetUserId = request.targetUserId,
                     ),
                 successStatusCode =
                     HttpStatusCode.Created,
@@ -54,47 +51,61 @@ fun Route.friendshipRoutes(
         }
 
         get("/requests/incoming") {
-            val currentUserId =
-                call.requireUserId()
+            val currentUserId = call.requireUserId()
 
-            val pagination =
-                call.friendshipPagination()
+            val pagination = call.friendshipPagination()
 
             call.handleResult(
-                result =
-                    getIncomingFriendRequestsUseCase(
+                result = getFriendRequestsUseCase(
                         currentUserId =
                             currentUserId,
                         limit =
                             pagination.limit,
                         offset =
                             pagination.offset,
+                        status = FriendshipState.INCOMING_REQUEST
                     ),
             )
         }
 
         get("/requests/outgoing") {
-            val currentUserId =
-                call.requireUserId()
+            val currentUserId = call.requireUserId()
 
-            val pagination =
-                call.friendshipPagination()
+            val pagination = call.friendshipPagination()
 
             call.handleResult(
                 result =
-                    getOutgoingFriendRequestsUseCase(
+                    getFriendRequestsUseCase(
                         currentUserId =
                             currentUserId,
                         limit =
                             pagination.limit,
                         offset =
                             pagination.offset,
+                        status = FriendshipState.OUTGOING_REQUEST
                     ),
             )
         }
 
-        post(
-            "/requests/{friendshipId}/accept",
+        get("/requests") {
+            val currentUserId = call.requireUserId()
+
+            val pagination = call.friendshipPagination()
+
+            call.handleResult(
+                result =
+                    getFriendRequestsUseCase(
+                        currentUserId =
+                            currentUserId,
+                        limit =
+                            pagination.limit,
+                        offset =
+                            pagination.offset
+                    ),
+            )
+        }
+
+        post("/requests/{friendshipId}/accept",
         ) {
             val currentUserId =
                 call.requireUserId()
@@ -141,20 +152,15 @@ fun Route.friendshipRoutes(
         }
 
         get {
-            val currentUserId =
-                call.requireUserId()
+            val currentUserId = call.requireUserId()
 
-            val pagination =
-                call.friendshipPagination()
+            val pagination = call.friendshipPagination()
 
             call.handleResult(
                 result = getFriendsUseCase(
-                    currentUserId =
-                        currentUserId,
-                    limit =
-                        pagination.limit,
-                    offset =
-                        pagination.offset,
+                    currentUserId = currentUserId,
+                    limit = pagination.limit,
+                    offset = pagination.offset,
                 ),
             )
         }

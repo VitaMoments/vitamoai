@@ -1,5 +1,6 @@
 package eu.vitamo.app.features.user.friendship.repository
 
+import eu.vitamo.app.api.contracts.friendship.FriendshipState
 import eu.vitamo.app.api.contracts.user.UserWithContext
 import eu.vitamo.app.api.result.PagedResult
 import eu.vitamo.app.repository.RepositoryResult
@@ -35,6 +36,12 @@ interface FriendshipRepository {
         limit: Int = DEFAULT_PAGE_SIZE,
         offset: Long = DEFAULT_OFFSET,
     ): RepositoryResult<PagedResult<UserWithContext>>
+
+    suspend fun getFriendRequests(
+        limit: Int = DEFAULT_PAGE_SIZE,
+        offset: Long = DEFAULT_OFFSET,
+        state: FriendshipState? = null
+    ) : RepositoryResult<PagedResult<UserWithContext>>
 
     suspend fun getFriends(
         limit: Int = DEFAULT_PAGE_SIZE,

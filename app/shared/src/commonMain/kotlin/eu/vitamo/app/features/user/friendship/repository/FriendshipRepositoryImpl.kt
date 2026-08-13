@@ -1,5 +1,6 @@
 package eu.vitamo.app.features.user.friendship.repository
 
+import eu.vitamo.app.api.contracts.friendship.FriendshipState
 import eu.vitamo.app.api.contracts.user.UserWithContext
 import eu.vitamo.app.api.result.PagedResult
 import eu.vitamo.app.features.user.friendship.api.FriendshipApi
@@ -71,6 +72,19 @@ class FriendshipRepositoryImpl(
             .getOutgoingRequests(
                 limit = limit,
                 offset = offset,
+            )
+            .toRepositoryResult()
+    }
+
+    override suspend fun getFriendRequests(
+        limit: Int,
+        offset: Long,
+        state: FriendshipState?
+    ): RepositoryResult<PagedResult<UserWithContext>> {
+        return friendshipApi
+            .getFriendRequests(
+                limit = limit,
+                offset = offset
             )
             .toRepositoryResult()
     }

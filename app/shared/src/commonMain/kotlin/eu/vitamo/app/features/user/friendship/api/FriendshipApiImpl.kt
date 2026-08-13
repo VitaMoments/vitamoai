@@ -131,6 +131,30 @@ class FriendshipApiImpl(
         }
     }
 
+    override suspend fun getFriendRequests(
+        limit: Int,
+        offset: Long
+    ): ApiResult<PagedResult<UserWithContext>> {
+        return safeAuthenticatedApiCall(
+            authSessionCoordinator = authSessionCoordinator,
+        ) {
+            client.get(
+                urlString =
+                    "friendships/requests",
+            ) {
+                parameter(
+                    key = "limit",
+                    value = limit,
+                )
+
+                parameter(
+                    key = "offset",
+                    value = offset,
+                )
+            }
+        }
+    }
+
     override suspend fun getFriends(
         limit: Int,
         offset: Long,

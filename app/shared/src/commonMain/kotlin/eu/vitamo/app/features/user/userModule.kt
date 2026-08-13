@@ -7,6 +7,7 @@ import eu.vitamo.app.features.user.friendship.api.FriendshipApiImpl
 import eu.vitamo.app.features.user.friendship.repository.FriendshipRepository
 import eu.vitamo.app.features.user.friendship.repository.FriendshipRepositoryImpl
 import eu.vitamo.app.features.user.friendship.usecase.AcceptFriendRequestUseCase
+import eu.vitamo.app.features.user.friendship.usecase.GetFriendRequestsUseCase
 import eu.vitamo.app.features.user.friendship.usecase.RejectFriendRequestUseCase
 import eu.vitamo.app.features.user.friendship.usecase.RemoveFriendshipUseCase
 import eu.vitamo.app.features.user.friendship.usecase.RevokeFriendRequestUseCase
@@ -24,6 +25,7 @@ val userModule = module {
     single<FriendshipRepository> { FriendshipRepositoryImpl(get()) }
 
     single { SearchUsersUseCase(get()) }
+    single { GetFriendRequestsUseCase(get()) }
 
     single { AcceptFriendRequestUseCase(get()) }
     single { RejectFriendRequestUseCase(get()) }

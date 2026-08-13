@@ -4,9 +4,8 @@ import eu.vitamo.app.features.friendship.repository.FriendshipRepository
 import eu.vitamo.app.features.friendship.repository.FriendshipRepositoryImpl
 import eu.vitamo.app.features.friendship.usecase.AcceptFriendRequestUseCase
 import eu.vitamo.app.features.friendship.usecase.DeleteFriendRequestUseCase
+import eu.vitamo.app.features.friendship.usecase.GetFriendRequestsUseCase
 import eu.vitamo.app.features.friendship.usecase.GetFriendsUseCase
-import eu.vitamo.app.features.friendship.usecase.GetIncomingFriendRequestsUseCase
-import eu.vitamo.app.features.friendship.usecase.GetOutgoingFriendRequestsUseCase
 import eu.vitamo.app.features.friendship.usecase.RemoveFriendshipUseCase
 import eu.vitamo.app.features.friendship.usecase.SendFriendRequestUseCase
 import eu.vitamo.app.features.friendship.usecase.helper.FriendshipPageLoader
@@ -68,18 +67,12 @@ val friendshipModule = module {
     }
 
     single {
-        GetIncomingFriendRequestsUseCase(
+        GetFriendRequestsUseCase(
             friendshipRepository = get(),
             friendshipPageLoader = get(),
         )
     }
 
-    single {
-        GetOutgoingFriendRequestsUseCase(
-            friendshipRepository = get(),
-            friendshipPageLoader = get(),
-        )
-    }
 
     single {
         GetFriendsUseCase(

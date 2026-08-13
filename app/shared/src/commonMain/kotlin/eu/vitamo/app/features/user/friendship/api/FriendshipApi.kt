@@ -39,6 +39,11 @@ interface FriendshipApi {
         offset: Long,
     ): ApiResult<PagedResult<UserWithContext>>
 
+    suspend fun getFriendRequests(
+        limit: Int,
+        offset: Long
+    ): ApiResult<PagedResult<UserWithContext>>
+
     suspend fun getFriends(
         limit: Int,
         offset: Long,

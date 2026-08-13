@@ -1,6 +1,7 @@
 package eu.vitamo.app.features.friendship.repository
 
 
+import eu.vitamo.app.api.contracts.friendship.FriendshipState
 import eu.vitamo.app.database.helpers.dbQuery
 import eu.vitamo.app.features.friendship.error.FriendshipRepositoryErrors
 import eu.vitamo.app.features.friendship.mapper.toFriendshipRecord
@@ -379,6 +380,49 @@ class FriendshipRepositoryImpl :
                 offset = offset,
             )
         }
+
+    override suspend fun findFriendshipRequestsByState(
+        currentUserId: Uuid,
+        limit: Int,
+        offset: Long,
+        state: FriendshipState,
+    ): RepositoryResult<Page<FriendshipRecord>> = dbQuery {
+        val participantPredicate =
+            (FriendshipsTable.userHighId eq currentUserId) or
+                    (FriendshipsTable.userLowId eq currentUserId)
+
+        val statePredicate = when (state) {
+                FriendshipState.NONE -> {
+                    FriendshipsTable.status eq
+                            FriendshipStatus.PENDING
+                }
+
+                FriendshipState.OUTGOING_REQUEST -> {
+                    (FriendshipsTable.status eq
+                            FriendshipStatus.PENDING) and
+                            (FriendshipsTable.requestedById eq
+                                    currentUserId)
+                }
+
+                FriendshipState.INCOMING_REQUEST -> {
+                    (FriendshipsTable.status eq
+                            FriendshipStatus.PENDING) and
+                            (FriendshipsTable.requestedById neq
+                                    currentUserId)
+                }
+
+                FriendshipState.FRIENDS -> {
+                    FriendshipsTable.status eq
+                            FriendshipStatus.ACCEPTED
+                }
+            }
+
+        findPage(
+            predicate = { participantPredicate and statePredicate },
+            limit = limit,
+            offset = offset,
+        )
+    }
 
     override suspend fun findFriends(
         currentUserId: Uuid,

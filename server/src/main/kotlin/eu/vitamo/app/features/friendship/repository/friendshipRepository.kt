@@ -1,5 +1,6 @@
 package eu.vitamo.app.features.friendship.repository
 
+import eu.vitamo.app.api.contracts.friendship.FriendshipState
 import eu.vitamo.app.features.friendship.model.FriendshipRecord
 import eu.vitamo.app.infrastructure.network.models.Page
 import eu.vitamo.app.repository.RepositoryResult
@@ -51,6 +52,13 @@ interface FriendshipRepository {
         currentUserId: Uuid,
         limit: Int,
         offset: Long,
+    ): RepositoryResult<Page<FriendshipRecord>>
+
+    suspend fun findFriendshipRequestsByState(
+        currentUserId: Uuid,
+        limit: Int,
+        offset: Long,
+        state: FriendshipState
     ): RepositoryResult<Page<FriendshipRecord>>
 
     suspend fun findFriends(

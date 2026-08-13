@@ -1,5 +1,9 @@
 package eu.vitamo.app.features.friendship.usecase
 
+
+import com.google.firebase.database.core.Repo
+import eu.vitamo.app.api.contracts.friendship.FriendshipState
+import eu.vitamo.app.api.contracts.user.User
 import eu.vitamo.app.api.contracts.user.UserWithContext
 import eu.vitamo.app.api.result.PagedResult
 import eu.vitamo.app.features.friendship.repository.FriendshipRepository
@@ -7,30 +11,30 @@ import eu.vitamo.app.features.friendship.usecase.helper.FriendshipPageLoader
 import eu.vitamo.app.repository.RepositoryResult
 import kotlin.uuid.Uuid
 
-class GetIncomingFriendRequestsUseCase(
-    private val friendshipRepository: FriendshipRepository,
-    private val friendshipPageLoader: FriendshipPageLoader,
-) {
 
+class GetFriendRequestsUseCase(
+    private val friendshipRepository: FriendshipRepository,
+    private val friendshipPageLoader: FriendshipPageLoader
+) {
     suspend operator fun invoke(
         currentUserId: Uuid,
         limit: Int,
         offset: Long,
-    ): RepositoryResult<PagedResult<UserWithContext>> {
+        status: FriendshipState = FriendshipState.NONE
+    ) : RepositoryResult<PagedResult<UserWithContext>> {
         return when (
             val result =
                 friendshipRepository
-                    .findIncomingRequests(
-                        currentUserId =
-                            currentUserId,
+                    .findFriendshipRequestsByState(
+                        currentUserId = currentUserId,
                         limit = limit,
                         offset = offset,
+                        state = FriendshipState.NONE
                     )
         ) {
             is RepositoryResult.Success -> {
                 friendshipPageLoader.load(
-                    currentUserId =
-                        currentUserId,
+                    currentUserId = currentUserId,
                     page = result.data,
                 )
             }
