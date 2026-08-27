@@ -32,6 +32,29 @@ import platform.darwin.dispatch_get_main_queue
 actual fun rememberProfileImagePickerLauncher(
     onImagePicked: (PickedImage) -> Unit,
     onError: (String) -> Unit,
+): ProfileImagePickerLauncher =
+    rememberImagePickerLauncher(
+        gallerySelectionLimit = 1,
+        onImagePicked = onImagePicked,
+        onError = onError,
+    )
+
+@Composable
+actual fun rememberFeedImagePickerLauncher(
+    onImagePicked: (PickedImage) -> Unit,
+    onError: (String) -> Unit,
+): ProfileImagePickerLauncher =
+    rememberImagePickerLauncher(
+        gallerySelectionLimit = MAX_FEED_IMAGES,
+        onImagePicked = onImagePicked,
+        onError = onError,
+    )
+
+@Composable
+private fun rememberImagePickerLauncher(
+    gallerySelectionLimit: Long,
+    onImagePicked: (PickedImage) -> Unit,
+    onError: (String) -> Unit,
 ): ProfileImagePickerLauncher {
     val presentingViewController =
         LocalUIViewController.current
@@ -200,73 +223,136 @@ private class GalleryPickerDelegate(
             completion = null,
         )
 
-        val result = didFinishPicking
-            .firstOrNull() as? PHPickerResult
-            ?: return
+        val results =
+            didFinishPicking
+                .mapNotNull { result ->
+                    result as? PHPickerResult
+                }
 
-        val itemProvider = result.itemProvider
-
-        if (
-            !itemProvider.hasItemConformingToTypeIdentifier(
-                UTTypeImage.identifier,
-            )
-        ) {
-            onError(
-                "Het geselecteerde bestand is geen afbeelding.",
-            )
-
+        if (results.isEmpty()) {
             return
         }
 
-        itemProvider.loadDataRepresentationForTypeIdentifier(
-            typeIdentifier = UTTypeImage.identifier,
-        ) { data: NSData?, error: NSError? ->
-            dispatch_async(
-                dispatch_get_main_queue(),
+        val pickedImages =
+            MutableList<PickedImage?>(
+                size = results.size,
             ) {
-                if (error != null) {
-                    onError(
-                        error.localizedDescription
-                            .takeIf(String::isNotBlank)
-                            ?: "De afbeelding kon niet worden geladen.",
-                    )
-
-                    return@dispatch_async
-                }
-
-                if (data == null) {
-                    onError(
-                        "De afbeelding bevat geen leesbare gegevens.",
-                    )
-
-                    return@dispatch_async
-                }
-
-                val image = UIImage(
-                    data = data,
-                )
-
-                val jpegData = image?.let {
-                    UIImageJPEGRepresentation(
-                        image = it,
-                        compressionQuality = JPEG_QUALITY,
-                    )
-                }
-
-                if (jpegData == null) {
-                    onError(
-                        "De afbeelding kon niet naar JPEG worden omgezet.",
-                    )
-
-                    return@dispatch_async
-                }
-
-                onImagePicked(
-                    jpegData.toPickedImage(
-                        prefix = GALLERY_FILE_PREFIX,
-                    ),
-                )
+                null
             }
+
+        var completedCount = 0
+
+        results.forEachIndexed {
+                index,
+                result,
+            ->
+
+            val itemProvider =
+                result.itemProvider
+
+            if (
+                !itemProvider
+                    .hasItemConformingToTypeIdentifier(
+                        UTTypeImage.identifier,
+                    )
+            ) {
+                dispatch_async(
+                    dispatch_get_main_queue(),
+                ) {
+                    onError(
+                        "Het geselecteerde bestand is geen afbeelding.",
+                    )
+
+                    completedCount++
+
+                    if (
+                        completedCount ==
+                        results.size
+                    ) {
+                        pickedImages
+                            .filterNotNull()
+                            .forEach(
+                                onImagePicked,
+                            )
+                    }
+                }
+
+                return@forEachIndexed
+            }
+
+            itemProvider
+                .loadDataRepresentationForTypeIdentifier(
+                    typeIdentifier =
+                        UTTypeImage.identifier,
+                ) { data: NSData?, error: NSError? ->
+
+                    dispatch_async(
+                        dispatch_get_main_queue(),
+                    ) {
+                        when {
+                            error != null -> {
+                                onError(
+                                    error.localizedDescription
+                                        .takeIf(
+                                            String::isNotBlank,
+                                        )
+                                        ?: "De afbeelding kon niet worden geladen.",
+                                )
+                            }
+
+                            data == null -> {
+                                onError(
+                                    "De afbeelding bevat geen leesbare gegevens.",
+                                )
+                            }
+
+                            else -> {
+                                val image =
+                                    UIImage(
+                                        data = data,
+                                    )
+
+                                val jpegData =
+                                    image?.let {
+                                        UIImageJPEGRepresentation(
+                                            image = it,
+                                            compressionQuality =
+                                                JPEG_QUALITY,
+                                        )
+                                    }
+
+                                if (jpegData == null) {
+                                    onError(
+                                        "De afbeelding kon niet naar JPEG worden omgezet.",
+                                    )
+                                } else {
+                                    pickedImages[index] =
+                                        jpegData.toPickedImage(
+                                            prefix =
+                                                GALLERY_FILE_PREFIX,
+                                        )
+                                }
+                            }
+                        }
+
+                        completedCount++
+
+                        if (
+                            completedCount ==
+                            results.size
+                        ) {
+                            /*
+                             * Eerst alles laden en daarna in dezelfde
+                             * volgorde teruggeven als de selectie.
+                             */
+                            pickedImages
+                                .filterNotNull()
+                                .forEach(
+                                    onImagePicked,
+                                )
+                        }
+                    }
+                }
         }
     }
 }
@@ -283,6 +369,9 @@ private fun NSData.toPickedImage(
         mimeType = JPEG_MIME_TYPE,
     )
 }
+
+private const val MAX_FEED_IMAGES =
+    5L
 
 private const val JPEG_QUALITY =
     0.9

@@ -21,6 +21,29 @@ import java.io.File
 actual fun rememberProfileImagePickerLauncher(
     onImagePicked: (PickedImage) -> Unit,
     onError: (String) -> Unit,
+): ProfileImagePickerLauncher =
+    rememberImagePickerLauncher(
+        galleryMode = GalleryMode.SINGLE,
+        onImagePicked = onImagePicked,
+        onError = onError,
+    )
+
+@Composable
+actual fun rememberFeedImagePickerLauncher(
+    onImagePicked: (PickedImage) -> Unit,
+    onError: (String) -> Unit,
+): ProfileImagePickerLauncher =
+    rememberImagePickerLauncher(
+        galleryMode = GalleryMode.MULTIPLE,
+        onImagePicked = onImagePicked,
+        onError = onError,
+    )
+
+@Composable
+private fun rememberImagePickerLauncher(
+    galleryMode: GalleryMode,
+    onImagePicked: (PickedImage) -> Unit,
+    onError: (String) -> Unit,
 ): ProfileImagePickerLauncher {
     val context = LocalContext.current
     val applicationContext = context.applicationContext
@@ -41,75 +64,87 @@ actual fun rememberProfileImagePickerLauncher(
         mutableStateOf<Uri?>(null)
     }
 
-    val galleryLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia(),
-    ) { uri ->
-        if (uri == null) {
-            return@rememberLauncherForActivityResult
-        }
-
-        runCatching {
-            PickedImage(
-                context = applicationContext,
-                uri = uri,
-                fileName = context.getDisplayName(uri),
-                mimeType = context
-                    .contentResolver
-                    .getType(uri)
-                    ?: DEFAULT_IMAGE_MIME_TYPE,
-                temporaryFile = null,
-            )
-        }.onSuccess { image ->
-            currentOnImagePicked(image)
-        }.onFailure { cause ->
-            currentOnError(
-                cause.message
-                    ?: "De afbeelding kon niet worden geselecteerd.",
-            )
-        }
-    }
-
-    val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicture(),
-    ) { success ->
-        val file = pendingCameraFile
-        val uri = pendingCameraUri
-
-        pendingCameraFile = null
-        pendingCameraUri = null
-
-        if (
-            !success ||
-            file == null ||
-            uri == null ||
-            !file.isFile ||
-            file.length() <= 0L
-        ) {
-            file?.delete()
-
-            if (success) {
-                currentOnError(
-                    "De gemaakte foto kon niet worden geopend.",
-                )
+    val singleGalleryLauncher =
+        rememberLauncherForActivityResult(
+            contract =
+                ActivityResultContracts.PickVisualMedia(),
+        ) { uri ->
+            if (uri == null) {
+                return@rememberLauncherForActivityResult
             }
 
-            return@rememberLauncherForActivityResult
+            createPickedImage(
+                context = context,
+                applicationContext = applicationContext,
+                uri = uri,
+                onImagePicked = currentOnImagePicked,
+                onError = currentOnError,
+            )
         }
 
-        currentOnImagePicked(
-            PickedImage(
-                context = applicationContext,
-                uri = uri,
-                fileName = file.name,
-                mimeType = JPEG_MIME_TYPE,
-                temporaryFile = file,
-            ),
-        )
-    }
+    val multipleGalleryLauncher =
+        rememberLauncherForActivityResult(
+            contract =
+                ActivityResultContracts.PickMultipleVisualMedia(
+                    maxItems = MAX_FEED_IMAGES,
+                ),
+        ) { uris ->
+            uris.forEach { uri ->
+                createPickedImage(
+                    context = context,
+                    applicationContext = applicationContext,
+                    uri = uri,
+                    onImagePicked = currentOnImagePicked,
+                    onError = currentOnError,
+                )
+            }
+        }
+
+    val cameraLauncher =
+        rememberLauncherForActivityResult(
+            contract =
+                ActivityResultContracts.TakePicture(),
+        ) { success ->
+            val file = pendingCameraFile
+            val uri = pendingCameraUri
+
+            pendingCameraFile = null
+            pendingCameraUri = null
+
+            if (
+                !success ||
+                file == null ||
+                uri == null ||
+                !file.isFile ||
+                file.length() <= 0L
+            ) {
+                file?.delete()
+
+                if (success) {
+                    currentOnError(
+                        "De gemaakte foto kon niet worden geopend.",
+                    )
+                }
+
+                return@rememberLauncherForActivityResult
+            }
+
+            currentOnImagePicked(
+                PickedImage(
+                    context = applicationContext,
+                    uri = uri,
+                    fileName = file.name,
+                    mimeType = JPEG_MIME_TYPE,
+                    temporaryFile = file,
+                ),
+            )
+        }
 
     return remember(
         applicationContext,
-        galleryLauncher,
+        galleryMode,
+        singleGalleryLauncher,
+        multipleGalleryLauncher,
         cameraLauncher,
     ) {
         object : ProfileImagePickerLauncher {
@@ -118,35 +153,44 @@ actual fun rememberProfileImagePickerLauncher(
                 runCatching {
                     pendingCameraFile?.delete()
 
-                    val directory = File(
-                        applicationContext.cacheDir,
-                        PROFILE_IMAGE_CACHE_DIRECTORY,
-                    ).apply {
-                        check(
-                            exists() || mkdirs(),
-                        ) {
-                            "De tijdelijke cameramap kon niet worden aangemaakt."
+                    val directory =
+                        File(
+                            applicationContext.cacheDir,
+                            PROFILE_IMAGE_CACHE_DIRECTORY,
+                        ).apply {
+                            check(
+                                exists() || mkdirs(),
+                            ) {
+                                "De tijdelijke cameramap kon niet worden aangemaakt."
+                            }
                         }
-                    }
 
-                    val temporaryFile = File.createTempFile(
-                        CAMERA_FILE_PREFIX,
-                        CAMERA_FILE_SUFFIX,
-                        directory,
+                    val temporaryFile =
+                        File.createTempFile(
+                            CAMERA_FILE_PREFIX,
+                            CAMERA_FILE_SUFFIX,
+                            directory,
+                        )
+
+                    val contentUri =
+                        FileProvider.getUriForFile(
+                            applicationContext,
+                            "${applicationContext.packageName}.$FILE_PROVIDER_SUFFIX",
+                            temporaryFile,
+                        )
+
+                    pendingCameraFile =
+                        temporaryFile
+
+                    pendingCameraUri =
+                        contentUri
+
+                    cameraLauncher.launch(
+                        contentUri,
                     )
-
-                    val contentUri = FileProvider.getUriForFile(
-                        applicationContext,
-                        "${applicationContext.packageName}.$FILE_PROVIDER_SUFFIX",
-                        temporaryFile,
-                    )
-
-                    pendingCameraFile = temporaryFile
-                    pendingCameraUri = contentUri
-
-                    cameraLauncher.launch(contentUri)
                 }.onFailure { cause ->
                     pendingCameraFile?.delete()
+
                     pendingCameraFile = null
                     pendingCameraUri = null
 
@@ -159,14 +203,27 @@ actual fun rememberProfileImagePickerLauncher(
 
             override fun launchGallery() {
                 runCatching {
-                    galleryLauncher.launch(
+                    val request =
                         PickVisualMediaRequest(
                             mediaType =
                                 ActivityResultContracts
                                     .PickVisualMedia
                                     .ImageOnly,
-                        ),
-                    )
+                        )
+
+                    when (galleryMode) {
+                        GalleryMode.SINGLE -> {
+                            singleGalleryLauncher.launch(
+                                request,
+                            )
+                        }
+
+                        GalleryMode.MULTIPLE -> {
+                            multipleGalleryLauncher.launch(
+                                request,
+                            )
+                        }
+                    }
                 }.onFailure { cause ->
                     currentOnError(
                         cause.message
@@ -178,19 +235,53 @@ actual fun rememberProfileImagePickerLauncher(
     }
 }
 
+private fun createPickedImage(
+    context: Context,
+    applicationContext: Context,
+    uri: Uri,
+    onImagePicked: (PickedImage) -> Unit,
+    onError: (String) -> Unit,
+) {
+    runCatching {
+        PickedImage(
+            context = applicationContext,
+            uri = uri,
+            fileName =
+                context.getDisplayName(
+                    uri = uri,
+                ),
+            mimeType =
+                context.contentResolver
+                    .getType(uri)
+                    ?: DEFAULT_IMAGE_MIME_TYPE,
+            temporaryFile = null,
+        )
+    }.onSuccess(
+        action = onImagePicked,
+    ).onFailure { cause ->
+        onError(
+            cause.message
+                ?: "De afbeelding kon niet worden geselecteerd.",
+        )
+    }
+}
+
 private fun Context.getDisplayName(
     uri: Uri,
 ): String {
     contentResolver.query(
         uri,
-        arrayOf(OpenableColumns.DISPLAY_NAME),
+        arrayOf(
+            OpenableColumns.DISPLAY_NAME,
+        ),
         null,
         null,
         null,
     )?.use { cursor ->
-        val columnIndex = cursor.getColumnIndex(
-            OpenableColumns.DISPLAY_NAME,
-        )
+        val columnIndex =
+            cursor.getColumnIndex(
+                OpenableColumns.DISPLAY_NAME,
+            )
 
         if (
             columnIndex >= 0 &&
@@ -208,6 +299,13 @@ private fun Context.getDisplayName(
         ?.takeIf(String::isNotBlank)
         ?: DEFAULT_GALLERY_FILE_NAME
 }
+
+private enum class GalleryMode {
+    SINGLE,
+    MULTIPLE,
+}
+
+private const val MAX_FEED_IMAGES = 5
 
 private const val PROFILE_IMAGE_CACHE_DIRECTORY =
     "profile-images"

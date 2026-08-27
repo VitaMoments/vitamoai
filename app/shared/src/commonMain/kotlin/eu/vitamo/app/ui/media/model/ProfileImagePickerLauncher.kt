@@ -15,3 +15,9 @@ expect fun rememberProfileImagePickerLauncher(
     onImagePicked: (PickedImage) -> Unit,
     onError: (String) -> Unit,
 ): ProfileImagePickerLauncher
+
+@Composable
+expect fun rememberFeedImagePickerLauncher(
+    onImagePicked: (PickedImage) -> Unit,
+    onError: (String) -> Unit,
+): ProfileImagePickerLauncher

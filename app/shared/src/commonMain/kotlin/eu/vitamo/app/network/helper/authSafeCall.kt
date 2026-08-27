@@ -58,10 +58,18 @@ internal suspend inline fun <T> executeAuthenticatedCall(
 
 @PublishedApi
 internal fun ApiResult<*>.requiresAccessTokenRefresh(): Boolean {
-    val failure = (this as? ApiResult.Error)?.error
-    val serverFailure = failure as? ApiFailure.Server
-        ?: return false
+    val failure =
+        (this as? ApiResult.Error)
+            ?.error
 
-    return AuthErrorCode.from(serverFailure.apiError.code) ==
+    val serverFailure =
+        failure as? ApiFailure.Server
+            ?: return false
+
+    val apiError =
+        serverFailure.apiError
+
+    return apiError.status == 401 ||
+            AuthErrorCode.from(apiError.code) ==
             AuthErrorCode.INVALID_ACCESS_TOKEN
 }

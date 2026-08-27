@@ -54,8 +54,8 @@ interface FriendshipRepository {
         offset: Long,
     ): RepositoryResult<Page<FriendshipRecord>>
 
-    suspend fun findFriendshipRequestsByState(
-        currentUserId: Uuid,
+    suspend fun findFriendshipByState(
+        userId: Uuid,
         limit: Int,
         offset: Long,
         state: FriendshipState
@@ -66,4 +66,8 @@ interface FriendshipRepository {
         limit: Int,
         offset: Long,
     ): RepositoryResult<Page<FriendshipRecord>>
+
+    suspend fun findFriendIds(
+        currentUserId: Uuid
+    ): RepositoryResult<List<Uuid>>
 }

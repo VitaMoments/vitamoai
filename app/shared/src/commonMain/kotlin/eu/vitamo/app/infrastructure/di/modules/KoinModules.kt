@@ -2,6 +2,7 @@ package eu.vitamo.app.infrastructure.di.modules
 
 import eu.vitamo.app.features.auth.authModule
 import eu.vitamo.app.features.device.deviceModule
+import eu.vitamo.app.features.feed.feedModule
 import eu.vitamo.app.features.media.mediaModule
 import eu.vitamo.app.features.settings.settingsModule
 import eu.vitamo.app.features.user.userModule
@@ -12,5 +13,6 @@ internal val koinModules: List<Module> = listOf(
     settingsModule,
     mediaModule,
     deviceModule,
-    authModule
+    authModule,
+    feedModule
 )

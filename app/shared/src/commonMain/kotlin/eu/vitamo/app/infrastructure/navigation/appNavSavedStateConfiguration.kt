@@ -18,6 +18,8 @@ val appNavSavedStateConfiguration = SavedStateConfiguration {
             subclass(MainDestination.Users::class, MainDestination.Users.serializer())
             subclass(MainDestination.FriendRequests::class, MainDestination.FriendRequests.serializer())
 
+            subclass(FeedDestination.CreatePost::class, FeedDestination.CreatePost.serializer())
+
 //            Authentication Destinations
             subclass(AuthDestination.Login::class, AuthDestination.Login.serializer())
             subclass(AuthDestination.Register::class, AuthDestination.Register.serializer())

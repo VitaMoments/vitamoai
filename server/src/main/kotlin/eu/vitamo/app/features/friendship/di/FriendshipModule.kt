@@ -9,75 +9,22 @@ import eu.vitamo.app.features.friendship.usecase.GetFriendsUseCase
 import eu.vitamo.app.features.friendship.usecase.RemoveFriendshipUseCase
 import eu.vitamo.app.features.friendship.usecase.SendFriendRequestUseCase
 import eu.vitamo.app.features.friendship.usecase.helper.FriendshipPageLoader
+import eu.vitamo.app.features.user.context.FriendshipsProvider
+import eu.vitamo.app.features.user.context.FriendshipsProviderImpl
 import eu.vitamo.app.features.user.context.UserContextLoader
 import org.koin.dsl.module
+import kotlin.math.sin
 
 val friendshipModule = module {
-    single<FriendshipRepository> {
-        FriendshipRepositoryImpl()
-    }
+    single<FriendshipRepository> { FriendshipRepositoryImpl() }
 
-    single {
-        UserContextLoader(
-            contextProvider = get(),
-            mediaAssetRepository = get(),
-            friendshipRepository = get(),
-        )
-    }
+    single { FriendshipPageLoader(get(), get())}
+    single<FriendshipsProvider> { FriendshipsProviderImpl(get(), get(), get()) }
 
-    single {
-        FriendshipPageLoader(
-            userRepository = get(),
-            userContextLoader = get(),
-        )
-    }
-
-    single {
-        SendFriendRequestUseCase(
-            userRepository = get(),
-            friendshipRepository = get(),
-            userContextLoader = get(),
-            notificationService = get(),
-            deviceRepository = get()
-        )
-    }
-
-    single {
-        AcceptFriendRequestUseCase(
-            friendshipRepository = get(),
-            userRepository = get(),
-            userContextLoader = get(),
-        )
-    }
-
-    single {
-        DeleteFriendRequestUseCase(
-            userRepository = get(),
-            friendshipRepository = get(),
-            userContextLoader = get()
-        )
-    }
-
-    single {
-        RemoveFriendshipUseCase(
-            userRepository = get(),
-            friendshipRepository = get(),
-            userContextLoader = get()
-        )
-    }
-
-    single {
-        GetFriendRequestsUseCase(
-            friendshipRepository = get(),
-            friendshipPageLoader = get(),
-        )
-    }
-
-
-    single {
-        GetFriendsUseCase(
-            friendshipRepository = get(),
-            friendshipPageLoader = get(),
-        )
-    }
+    single { SendFriendRequestUseCase(get(),get(),get(),get(),get()) }
+    single { AcceptFriendRequestUseCase(get(),get(), get())}
+    single { DeleteFriendRequestUseCase(get(),get(),get()) }
+    single { RemoveFriendshipUseCase(get(),get(),get()) }
+    single { GetFriendRequestsUseCase(get(), get()) }
+    single { GetFriendsUseCase(get(), get()) }
 }

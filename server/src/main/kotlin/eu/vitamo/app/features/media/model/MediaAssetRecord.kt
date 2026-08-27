@@ -12,6 +12,8 @@ data class MediaAssetRecord(
     val ownerId: Uuid,
     val type: MediaType,
     val purpose: MediaPurpose,
+    val feedItemId: Uuid?,
+    val position: Int?,
     val status: MediaStatus,
     val visibility: MediaVisibility,
     val storageKey: String,

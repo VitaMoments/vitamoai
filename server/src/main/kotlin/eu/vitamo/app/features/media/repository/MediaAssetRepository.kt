@@ -15,6 +15,29 @@ interface MediaAssetRepository {
         id: Uuid,
     ): RepositoryResult<MediaAssetRecord>
 
+    suspend fun findByIds(
+        ids: Collection<Uuid>,
+    ): RepositoryResult<List<MediaAssetRecord>>
+
+    suspend fun findByFeedItemId(
+        feedItemId: Uuid,
+    ): RepositoryResult<List<MediaAssetRecord>>
+
+    suspend fun attachToFeedItem(
+        mediaId: Uuid,
+        feedItemId: Uuid,
+        position: Int,
+    ): RepositoryResult<MediaAssetRecord>
+
+    suspend fun attachAllToFeedItem(
+        mediaIds: List<Uuid>,
+        feedItemId: Uuid,
+    ): RepositoryResult<List<MediaAssetRecord>>
+
+    suspend fun detachFromFeedItem(
+        mediaId: Uuid,
+    ): RepositoryResult<MediaAssetRecord>
+
     suspend fun markReady(
         id: Uuid,
     ): RepositoryResult<MediaAssetRecord>

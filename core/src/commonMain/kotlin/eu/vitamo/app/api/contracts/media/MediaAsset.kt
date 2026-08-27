@@ -53,3 +53,9 @@ data class MediaReference(
     val id: Uuid,
     val contentPath: String,
 )
+
+fun MediaAsset.toMediaReference(): MediaReference =
+    MediaReference(
+        id = id,
+        contentPath = contentPath,
+    )

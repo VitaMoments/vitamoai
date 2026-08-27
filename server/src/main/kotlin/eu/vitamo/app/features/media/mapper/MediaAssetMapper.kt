@@ -21,6 +21,8 @@ fun MediaAssetEntity.toRecord(): MediaAssetRecord {
         createdAt = createdAt,
         updatedAt = updatedAt,
         deletedAt = deletedAt,
+        feedItemId = feedItemId?.value,
+        position = position
     )
 }
 

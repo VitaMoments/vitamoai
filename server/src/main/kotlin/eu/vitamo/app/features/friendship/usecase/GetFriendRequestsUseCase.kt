@@ -1,9 +1,7 @@
 package eu.vitamo.app.features.friendship.usecase
 
 
-import com.google.firebase.database.core.Repo
 import eu.vitamo.app.api.contracts.friendship.FriendshipState
-import eu.vitamo.app.api.contracts.user.User
 import eu.vitamo.app.api.contracts.user.UserWithContext
 import eu.vitamo.app.api.result.PagedResult
 import eu.vitamo.app.features.friendship.repository.FriendshipRepository
@@ -25,8 +23,8 @@ class GetFriendRequestsUseCase(
         return when (
             val result =
                 friendshipRepository
-                    .findFriendshipRequestsByState(
-                        currentUserId = currentUserId,
+                    .findFriendshipByState(
+                        userId = currentUserId,
                         limit = limit,
                         offset = offset,
                         state = FriendshipState.NONE

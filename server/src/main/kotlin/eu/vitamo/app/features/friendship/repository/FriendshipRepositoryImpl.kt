@@ -1,6 +1,7 @@
 package eu.vitamo.app.features.friendship.repository
 
 
+import com.google.cloud.firestore.Filter.and
 import eu.vitamo.app.api.contracts.friendship.FriendshipState
 import eu.vitamo.app.database.helpers.dbQuery
 import eu.vitamo.app.features.friendship.error.FriendshipRepositoryErrors
@@ -21,6 +22,7 @@ import org.jetbrains.exposed.v1.core.neq
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
 import kotlin.time.Clock
@@ -381,36 +383,28 @@ class FriendshipRepositoryImpl :
             )
         }
 
-    override suspend fun findFriendshipRequestsByState(
-        currentUserId: Uuid,
+    override suspend fun findFriendshipByState(
+        userId: Uuid,
         limit: Int,
         offset: Long,
         state: FriendshipState,
     ): RepositoryResult<Page<FriendshipRecord>> = dbQuery {
         val participantPredicate =
-            (FriendshipsTable.userHighId eq currentUserId) or
-                    (FriendshipsTable.userLowId eq currentUserId)
+            (FriendshipsTable.userHighId eq userId) or
+                    (FriendshipsTable.userLowId eq userId)
 
         val statePredicate = when (state) {
-                FriendshipState.NONE -> {
-                    FriendshipsTable.status eq
-                            FriendshipStatus.PENDING
-                }
-
+                FriendshipState.NONE -> { FriendshipsTable.status eq FriendshipStatus.PENDING }
                 FriendshipState.OUTGOING_REQUEST -> {
                     (FriendshipsTable.status eq
                             FriendshipStatus.PENDING) and
-                            (FriendshipsTable.requestedById eq
-                                    currentUserId)
+                            (FriendshipsTable.requestedById eq userId)
                 }
-
                 FriendshipState.INCOMING_REQUEST -> {
                     (FriendshipsTable.status eq
                             FriendshipStatus.PENDING) and
-                            (FriendshipsTable.requestedById neq
-                                    currentUserId)
+                            (FriendshipsTable.requestedById neq userId)
                 }
-
                 FriendshipState.FRIENDS -> {
                     FriendshipsTable.status eq
                             FriendshipStatus.ACCEPTED
@@ -451,6 +445,26 @@ class FriendshipRepositoryImpl :
                 offset = offset,
             )
         }
+
+    override suspend fun findFriendIds(currentUserId: Uuid): RepositoryResult<List<Uuid>> = dbQuery {
+        val friendshipIds = FriendshipsTable.select(
+            FriendshipsTable.userLowId,
+            FriendshipsTable.userHighId
+        )
+            .where{
+                predicate(currentUserId) and(FriendshipsTable.status eq FriendshipStatus.ACCEPTED)
+            }
+            .map { row ->
+                val lowId = row[FriendshipsTable.userLowId]
+                val highId = row[FriendshipsTable.userHighId]
+
+                if (lowId == currentUserId) { highId } else { lowId }
+            }
+
+        RepositoryResult.Success(
+            friendshipIds
+        )
+    }
 
     private fun findRecord(
         friendshipId: Uuid,
@@ -521,6 +535,9 @@ class FriendshipRepositoryImpl :
                         FriendshipsTable.userHighId eq high
                         )
     }
+
+    private fun predicate(id: Uuid): Op<Boolean> =(FriendshipsTable.userHighId eq id) or (FriendshipsTable.userLowId eq id)
+
 
     private suspend fun deleteByStatus(
         friendshipId: Uuid,

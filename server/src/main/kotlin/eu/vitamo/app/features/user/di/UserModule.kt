@@ -13,12 +13,10 @@ import eu.vitamo.app.features.user.usecase.SearchUsersUseCase
 import org.koin.dsl.module
 
 val userModule = module {
-
     single<DeviceRepository> { DeviceRepositoryImpl() }
-
     single<UserRepository> { UserRepositoryImpl() }
     single<UserContextProvider> { UserContextProviderImpl() }
-    single<UserContextLoader> { UserContextLoader(get(), get(), get()) }
+    single<UserContextLoader> { UserContextLoader(get(), get(), get(), get()) }
 
     single { SearchUsersUseCase(get(),get()) }
     single { GetUserUseCase(get(), get()) }

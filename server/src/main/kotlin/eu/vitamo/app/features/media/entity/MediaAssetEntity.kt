@@ -9,11 +9,14 @@ import kotlin.uuid.Uuid
 class MediaAssetEntity(
     id: EntityID<Uuid>,
 ) : UuidEntity(id) {
-
     companion object :
         UuidEntityClass<MediaAssetEntity>(MediaAssetsTable)
 
     var ownerId by MediaAssetsTable.ownerId
+
+    var feedItemId by MediaAssetsTable.feedItemId
+    var position by MediaAssetsTable.position
+
     var mediaType by MediaAssetsTable.mediaType
     var purpose by MediaAssetsTable.purpose
     var status by MediaAssetsTable.status
@@ -25,6 +28,7 @@ class MediaAssetEntity(
 
     var width by MediaAssetsTable.width
     var height by MediaAssetsTable.height
+
     var sha256 by MediaAssetsTable.sha256
 
     var createdAt by MediaAssetsTable.createdAt

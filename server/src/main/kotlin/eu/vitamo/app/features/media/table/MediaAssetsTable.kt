@@ -4,14 +4,26 @@ import eu.vitamo.app.api.contracts.media.MediaPurpose
 import eu.vitamo.app.api.contracts.media.MediaStatus
 import eu.vitamo.app.api.contracts.media.MediaType
 import eu.vitamo.app.api.contracts.media.MediaVisibility
+import eu.vitamo.app.features.feed.table.FeedItemTable
+import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.datetime.timestamp
 
 object MediaAssetsTable : UuidTable(
     name = "media_assets",
 ) {
-    val ownerId = uuid("owner_id")
-        .index()
+    val ownerId = uuid(name = "owner_id",).index()
+
+    val feedItemId = reference(
+        name = "feed_item_id",
+        foreign = FeedItemTable,
+        onDelete = ReferenceOption.SET_NULL,
+    ).nullable()
+        .index("media_assets_feed_item_id_idx")
+
+    val position = integer(
+        name = "position",
+    ).nullable()
 
     val mediaType = enumerationByName(
         name = "media_type",
@@ -66,4 +78,11 @@ object MediaAssetsTable : UuidTable(
 
     val deletedAt = timestamp("deleted_at")
         .nullable()
+
+    init {
+        uniqueIndex(
+            "media_assets_feed_item_position_uidx",
+            feedItemId, position
+        )
+    }
 }

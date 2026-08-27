@@ -19,7 +19,9 @@ import eu.vitamo.app.infrastructure.storage.ClientInstanceIdStorageImpl
 import eu.vitamo.app.infrastructure.storage.FirebaseInstallationIdStorage
 import eu.vitamo.app.infrastructure.storage.FirebaseInstallationIdStorageImpl
 import eu.vitamo.app.network.createAppHttpClient
+import eu.vitamo.app.serialization.AppJson
 import io.ktor.client.HttpClient
+import kotlinx.serialization.json.Json
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModelOf
@@ -29,6 +31,7 @@ import org.koin.dsl.module
 private var koinStarted = false
 
 internal val sharedAppModule: Module = module {
+    single<Json> { AppJson }
 
     single<HttpClient> {
         createAppHttpClient(

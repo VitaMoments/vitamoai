@@ -27,6 +27,8 @@ import eu.vitamo.app.ui.auth.password_recovery.forgot_password.ForgotPasswordScr
 import eu.vitamo.app.ui.auth.password_recovery.reset_password.ResetPasswordScreen
 import eu.vitamo.app.ui.auth.registration.RegistrationScreen
 import eu.vitamo.app.ui.auth.verification.VerificationScreen
+import eu.vitamo.app.ui.feed.CreatePostScreen
+import eu.vitamo.app.ui.feed.FeedScreen
 import eu.vitamo.app.ui.home.HomeScreen
 import eu.vitamo.app.ui.settings.SettingsScreen
 import eu.vitamo.app.ui.user.friends.FriendRequestsScreen
@@ -111,9 +113,33 @@ fun NavigationRoot(
                     ),
                     entryProvider = entryProvider {
                         entry<MainDestination.Home> {
-                            HomeScreen(
-                                accessToken = accessToken,
-                                refreshToken = refreshToken
+                            FeedScreen(
+                                onCreatePostClicked = {
+                                    backStack.add(
+                                        FeedDestination.CreatePost,
+                                    )
+                                },
+                            )
+                        }
+
+                        entry<FeedDestination.CreatePost> {
+                            CreatePostScreen(
+                                onClose = {
+                                    if (backStack.size > 1) {
+                                        backStack.removeAt(
+                                            backStack.lastIndex,
+                                        )
+                                    } else {
+                                        backStack.setRoot(
+                                            MainDestination.Home,
+                                        )
+                                    }
+                                },
+                                onPostCreated = {
+                                    backStack.setRoot(
+                                        MainDestination.Home,
+                                    )
+                                },
                             )
                         }
 

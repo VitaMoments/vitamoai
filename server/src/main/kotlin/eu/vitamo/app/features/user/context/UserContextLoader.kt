@@ -15,27 +15,30 @@ import kotlin.uuid.Uuid
 
 class UserContextLoader(
     private val contextProvider: UserContextProvider,
+    private val friendshipsProvider: FriendshipsProvider,
     private val mediaAssetRepository: MediaAssetRepository,
     private val friendshipRepository: FriendshipRepository,
 ) {
-
     suspend fun load(
         currentUserId: Uuid,
         targetUser: UserRecord,
     ): UserWithContext {
-        val context = contextProvider.resolve(
-            currentUserId = currentUserId,
-            targetUser = targetUser,
-        )
+        val context =
+            contextProvider.resolve(
+                currentUserId = currentUserId,
+                targetUser = targetUser,
+            )
 
-        val profileImage = loadProfileImage(
-            user = targetUser,
-        )
+        val profileImage =
+            loadProfileImage(
+                user = targetUser,
+            )
 
-        val friendshipContext = loadFriendshipContext(
-            currentUserId = currentUserId,
-            targetUserId = targetUser.id,
-        )
+        val friendshipContext =
+            loadFriendshipContext(
+                currentUserId = currentUserId,
+                targetUserId = targetUser.id,
+            )
 
         return UserWithContext(
             user = targetUser.toUser(
@@ -46,17 +49,6 @@ class UserContextLoader(
         )
     }
 
-//    suspend fun loadAll(
-//        currentUserId: Uuid,
-//        targetUsers: List<UserRecord>,
-//    ): List<UserWithContext> =
-//        targetUsers.map { targetUser ->
-//            load(
-//                currentUserId = currentUserId,
-//                targetUser = targetUser,
-//            )
-//        }
-
     suspend fun loadAll(
         currentUserId: Uuid,
         targetUsers: List<UserRecord>,
@@ -65,6 +57,12 @@ class UserContextLoader(
             return emptyList()
         }
 
+        val contexts =
+            contextProvider.resolveAll(
+                currentUserId = currentUserId,
+                targetUsers = targetUsers,
+            )
+
         val friendshipsByUserId =
             loadFriendshipsByUserId(
                 currentUserId = currentUserId,
@@ -72,13 +70,13 @@ class UserContextLoader(
             )
 
         return targetUsers.map { targetUser ->
-            val accessContext =
-                contextProvider.resolve(
-                    currentUserId =
-                        currentUserId,
-                    targetUser =
-                        targetUser,
-                )
+            val context =
+                contexts[targetUser.id]
+                    ?: UserContext(
+                        accessLevel =
+                            UserAccessLevel.PUBLIC,
+                    )
+
             val profileImage =
                 loadProfileImage(
                     user = targetUser,
@@ -96,29 +94,75 @@ class UserContextLoader(
                     ]?.toFriendshipContext(
                         currentUserId =
                             currentUserId,
-                    ) ?: FriendshipContext()
+                    )
+                        ?: FriendshipContext()
                 }
 
             UserWithContext(
                 user = targetUser.toUser(
                     accessLevel =
-                        accessContext.accessLevel,
+                        context.accessLevel,
                     profileImage =
                         profileImage,
                 ),
-                friendshipContext = friendshipContext,
+                friendshipContext =
+                    friendshipContext,
             )
         }
     }
 
+    private suspend fun loadFriendshipContext(
+        currentUserId: Uuid,
+        targetUserId: Uuid,
+    ): FriendshipContext {
+        val context =
+            if (
+                currentUserId ==
+                targetUserId
+            ) {
+                FriendshipContext()
+            } else {
+                when (
+                    val result =
+                        friendshipRepository
+                            .findBetweenUsers(
+                                firstUserId =
+                                    currentUserId,
+                                secondUserId =
+                                    targetUserId,
+                            )
+                ) {
+                    is RepositoryResult.Success -> {
+                        result.data
+                            ?.toFriendshipContext(
+                                currentUserId =
+                                    currentUserId,
+                            )
+                            ?: FriendshipContext()
+                    }
+
+                    is RepositoryResult.Error -> {
+                        FriendshipContext()
+                    }
+                }
+            }
+
+        val friendships =
+            friendshipsProvider.resolve(
+                currentUserId = currentUserId,
+                targetUserId = targetUserId,
+                friendshipContext = context,
+            )
+
+        return context.copy(
+            friends = friendships,
+        )
+    }
+
     private suspend fun loadFriendshipsByUserId(
-        currentUserId: Uuid?,
+        currentUserId: Uuid,
         targetUsers: List<UserRecord>,
     ): Map<Uuid, FriendshipRecord> {
-        if (currentUserId == null) {
-            return emptyMap()
-        }
-
         return when (
             val result =
                 friendshipRepository
@@ -141,71 +185,41 @@ class UserContextLoader(
         }
     }
 
-    private suspend fun loadFriendshipContext(
-        currentUserId: Uuid?,
-        targetUserId: Uuid,
-    ): FriendshipContext {
-        if (
-            currentUserId == null ||
-            currentUserId == targetUserId
-        ) {
-            return FriendshipContext()
-        }
-
-        return when (
-            val result =
-                friendshipRepository
-                    .findBetweenUsers(
-                        firstUserId =
-                            currentUserId,
-                        secondUserId =
-                            targetUserId,
-                    )
-        ) {
-            is RepositoryResult.Success -> {
-                result.data
-                    ?.toFriendshipContext(
-                        currentUserId =
-                            currentUserId,
-                    )
-                    ?: FriendshipContext()
-            }
-
-            is RepositoryResult.Error -> {
-                FriendshipContext()
-            }
-        }
-    }
-
     private suspend fun loadProfileImage(
         user: UserRecord,
     ): MediaReference? {
-        val profileImageId = user.profileImageId
-            ?: return null
+        val profileImageId =
+            user.profileImageId
+                ?: return null
 
         return when (
-            val result = mediaAssetRepository.findById(
-                id = profileImageId,
-            )
+            val result =
+                mediaAssetRepository.findById(
+                    id = profileImageId,
+                )
         ) {
             is RepositoryResult.Success -> {
-                val media = result.data
+                val media =
+                    result.data
 
                 if (
-                    media.status != MediaStatus.READY ||
+                    media.status !=
+                    MediaStatus.READY ||
                     media.deletedAt != null
                 ) {
                     null
                 } else {
                     MediaReference(
                         id = media.id,
-                        contentPath = "/media/${media.id}/content",
+                        contentPath =
+                            "/media/${media.id}/content",
                     )
                 }
             }
 
-            is RepositoryResult.Error ->
+            is RepositoryResult.Error -> {
                 null
+            }
         }
     }
 }

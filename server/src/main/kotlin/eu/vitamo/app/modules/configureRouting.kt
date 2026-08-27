@@ -1,6 +1,8 @@
 package eu.vitamo.app.modules
 
 import eu.vitamo.app.features.auth.routes.authRoutes
+import eu.vitamo.app.features.device.routes.deviceRoutes
+import eu.vitamo.app.features.feed.routes.feedRoutes
 import eu.vitamo.app.features.friendship.routes.friendshipRoutes
 import eu.vitamo.app.features.media.routes.mediaRoutes
 import eu.vitamo.app.features.user.routes.userRoutes
@@ -36,7 +38,9 @@ private fun Routing.apiRoutes() {
         authenticate("cookie-jwt-authentication") {
             mediaRoutes()
             userRoutes()
+            deviceRoutes()
             friendshipRoutes()
+            feedRoutes()
         }
     }
 }

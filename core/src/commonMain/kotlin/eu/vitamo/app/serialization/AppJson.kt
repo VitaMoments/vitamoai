@@ -12,9 +12,10 @@ import kotlin.uuid.Uuid
 val AppJson = Json {
     classDiscriminator = "type"
     ignoreUnknownKeys = true
-    isLenient = true
+    isLenient = false
     coerceInputValues = true
     encodeDefaults = true
+    explicitNulls = false
     serializersModule = SerializersModule {
         contextual(Uuid::class, UuidSerializer)
         contextual(Instant::class, InstantSerializer)

@@ -18,7 +18,9 @@ import kotlinx.datetime.LocalDate
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.isNull
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -97,6 +99,38 @@ class UserRepositoryImpl: UserRepository {
                     message = "User with id $id was not found.",
                 ),
             )
+    }
+
+    override suspend fun findByIds(
+        ids: Collection<Uuid>,
+    ): RepositoryResult<List<UserRecord>> = dbQuery {
+        if (ids.isEmpty()) {
+            return@dbQuery RepositoryResult.Success(
+                data = emptyList(),
+            )
+        }
+
+        val entityIds = ids
+            .distinct()
+            .map { id ->
+                EntityID(
+                    id = id,
+                    table = UsersTable,
+                )
+            }
+
+        val users = UserEntity
+            .find {
+                (UsersTable.id inList entityIds) and
+                        UsersTable.deletedAt.isNull()
+            }
+            .map { entity ->
+                entity.toRecord()
+            }
+
+        RepositoryResult.Success(
+            data = users,
+        )
     }
 
     override fun deleteById(id: Uuid) {

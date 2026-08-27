@@ -18,6 +18,9 @@ interface UserRepository {
     ) : RepositoryResult<Page<UserRecord>>
     suspend fun findByEmail(email: String): UserRecord?
     suspend fun findById(id: Uuid): RepositoryResult<UserRecord>
+    suspend fun findByIds(
+        ids: Collection<Uuid>,
+    ): RepositoryResult<List<UserRecord>>
     fun deleteById(id: Uuid)
 
     suspend fun createUser(

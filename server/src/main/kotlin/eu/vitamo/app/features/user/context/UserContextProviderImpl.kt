@@ -24,7 +24,6 @@ class UserContextProviderImpl : UserContextProvider {
             )
         }
 
-
     private fun createContext(
         currentUserId: Uuid,
         user: UserRecord,
