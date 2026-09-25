@@ -10,10 +10,16 @@ class FeedItemEntity(
     id: EntityID<Uuid>,
 ) : UuidEntity(id) {
 
-    companion object : UuidEntityClass<FeedItemEntity>(FeedItemTable)
+    companion object :
+        UuidEntityClass<FeedItemEntity>(
+            FeedItemTable,
+        )
 
     var authorId by FeedItemTable.authorId
     var type by FeedItemTable.type
+
+    var commentsEnabled by
+    FeedItemTable.commentsEnabled
 
     var createdAt by FeedItemTable.createdAt
     var updatedAt by FeedItemTable.updatedAt

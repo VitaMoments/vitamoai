@@ -6,6 +6,7 @@ import kotlin.uuid.Uuid
 sealed interface FeedItemRecord {
     val id: Uuid
     val authorId: Uuid
+    val commentsEnabled: Boolean
     val createdAt: Instant
     val updatedAt: Instant
     val deletedAt: Instant?

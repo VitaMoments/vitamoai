@@ -31,6 +31,63 @@ CREATE INDEX IF NOT EXISTS users_display_name_idx
 CREATE INDEX IF NOT EXISTS idx_users_profile_image_id
     ON users (profile_image_id);
 
+
+-- -----------------------------------------------------------------------------
+-- User settings
+--
+-- No row is required for a user. The server falls back to default settings
+-- when no row exists. A row is created when the user changes a setting.
+-- -----------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS user_settings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL,
+    comments_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at_epoch_seconds BIGINT NOT NULL,
+    updated_at_epoch_seconds BIGINT NOT NULL,
+
+    CONSTRAINT fk_user_settings_user
+        FOREIGN KEY (user_id)
+        REFERENCES users (id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT uq_user_settings_user
+        UNIQUE (user_id)
+);
+
+CREATE INDEX IF NOT EXISTS user_settings_user_id_idx
+    ON user_settings (user_id);
+
+
+-- -----------------------------------------------------------------------------
+-- User subscriptions
+--
+-- BASIC is the server fallback when no effective paid subscription exists.
+-- Multiple rows per user are allowed so subscription history can be retained.
+-- -----------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS user_subscriptions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL,
+    plan VARCHAR(32) NOT NULL,
+    status VARCHAR(32) NOT NULL,
+    current_period_end_epoch_seconds BIGINT,
+    created_at_epoch_seconds BIGINT NOT NULL,
+    updated_at_epoch_seconds BIGINT NOT NULL,
+
+    CONSTRAINT fk_user_subscriptions_user
+        FOREIGN KEY (user_id)
+        REFERENCES users (id)
+        ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS user_subscriptions_user_id_idx
+    ON user_subscriptions (user_id);
+
+CREATE INDEX IF NOT EXISTS user_subscriptions_user_created_at_idx
+    ON user_subscriptions (user_id, created_at_epoch_seconds DESC);
+
+
 -- -----------------------------------------------------------------------------
 -- Devices
 --
@@ -62,11 +119,12 @@ CREATE UNIQUE INDEX IF NOT EXISTS devices_firebase_installation_id_uidx
     ON devices (firebase_installation_id)
     WHERE firebase_installation_id IS NOT NULL;
 
+
 -- -----------------------------------------------------------------------------
 -- Refresh tokens
 --
--- A refresh token now points to a Device. Client/device metadata is no longer
--- duplicated on the token itself.
+-- A refresh token points to a Device. Client/device metadata is not duplicated
+-- on the token itself.
 -- -----------------------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS refresh_tokens (
@@ -97,6 +155,7 @@ CREATE INDEX IF NOT EXISTS refresh_tokens_expired_at_idx
 
 CREATE INDEX IF NOT EXISTS refresh_tokens_revoked_at_idx
     ON refresh_tokens (revoked_at_epoch_seconds);
+
 
 -- -----------------------------------------------------------------------------
 -- Email verification
@@ -130,6 +189,7 @@ CREATE INDEX IF NOT EXISTS email_verification_challenges_expires_at_idx
 CREATE INDEX IF NOT EXISTS email_verification_challenges_consumed_at_idx
     ON email_verification_challenges (consumed_at);
 
+
 -- -----------------------------------------------------------------------------
 -- Password reset
 -- -----------------------------------------------------------------------------
@@ -157,61 +217,6 @@ CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_expires_at
 CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_consumed_at
     ON password_reset_tokens (consumed_at);
 
--- -----------------------------------------------------------------------------
--- Media assets
--- -----------------------------------------------------------------------------
-
-CREATE TABLE IF NOT EXISTS media_assets (
-    id UUID PRIMARY KEY,
-    owner_id UUID NOT NULL,
-    media_type VARCHAR(32) NOT NULL,
-    purpose VARCHAR(64) NOT NULL,
-    status VARCHAR(32) NOT NULL,
-    visibility VARCHAR(32) NOT NULL,
-    storage_key VARCHAR(512) NOT NULL,
-    mime_type VARCHAR(128) NOT NULL,
-    size_bytes BIGINT NOT NULL,
-    width INTEGER,
-    height INTEGER,
-    sha256 VARCHAR(64) NOT NULL,
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL,
-    deleted_at TIMESTAMP,
-
-    CONSTRAINT fk_media_assets_owner
-        FOREIGN KEY (owner_id)
-        REFERENCES users (id)
-        ON DELETE CASCADE,
-
-    CONSTRAINT uq_media_assets_storage_key
-        UNIQUE (storage_key),
-
-    CONSTRAINT chk_media_assets_type
-        CHECK (media_type IN ('IMAGE', 'VIDEO')),
-
-    CONSTRAINT chk_media_assets_status
-        CHECK (status IN ('PENDING', 'READY', 'FAILED', 'DELETED')),
-
-    CONSTRAINT chk_media_assets_visibility
-        CHECK (visibility IN (
-            'PUBLIC',
-            'AUTHENTICATED',
-            'FRIENDS',
-            'PRIVATE'
-        )),
-
-    CONSTRAINT chk_media_assets_size
-        CHECK (size_bytes >= 0)
-);
-
-CREATE INDEX IF NOT EXISTS idx_media_assets_owner_id
-    ON media_assets (owner_id);
-
-CREATE INDEX IF NOT EXISTS idx_media_assets_status
-    ON media_assets (status);
-
-CREATE INDEX IF NOT EXISTS idx_media_assets_owner_status
-    ON media_assets (owner_id, status);
 
 -- -----------------------------------------------------------------------------
 -- Friendships
@@ -269,3 +274,261 @@ CREATE INDEX IF NOT EXISTS idx_friendships_requested_by
 
 CREATE INDEX IF NOT EXISTS idx_friendships_status
     ON friendships (status);
+
+
+-- -----------------------------------------------------------------------------
+-- Feed items
+-- -----------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS feed_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    author_id UUID NOT NULL,
+    type VARCHAR(32) NOT NULL,
+    comments_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at BIGINT NOT NULL,
+    updated_at BIGINT NOT NULL,
+    deleted_at BIGINT,
+
+    CONSTRAINT fk_feed_items_author
+        FOREIGN KEY (author_id)
+        REFERENCES users (id)
+        ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS feed_items_author_id_idx
+    ON feed_items (author_id);
+
+CREATE INDEX IF NOT EXISTS feed_items_created_at_idx
+    ON feed_items (created_at DESC);
+
+CREATE INDEX IF NOT EXISTS feed_items_active_created_at_idx
+    ON feed_items (created_at DESC)
+    WHERE deleted_at IS NULL;
+
+
+-- -----------------------------------------------------------------------------
+-- Media assets
+--
+-- feed_item_id = NULL:
+--   media is not attached to a feed item (for example PROFILE_IMAGE)
+--
+-- position:
+--   controls ordering inside FeedContent.assets
+-- -----------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS media_assets (
+    id UUID PRIMARY KEY,
+    owner_id UUID NOT NULL,
+    feed_item_id UUID,
+    position INTEGER,
+    media_type VARCHAR(32) NOT NULL,
+    purpose VARCHAR(64) NOT NULL,
+    status VARCHAR(32) NOT NULL,
+    visibility VARCHAR(32) NOT NULL,
+    storage_key VARCHAR(512) NOT NULL,
+    mime_type VARCHAR(128) NOT NULL,
+    size_bytes BIGINT NOT NULL,
+    width INTEGER,
+    height INTEGER,
+    sha256 VARCHAR(64) NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
+    deleted_at TIMESTAMP,
+
+    CONSTRAINT fk_media_assets_owner
+        FOREIGN KEY (owner_id)
+        REFERENCES users (id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_media_assets_feed_item
+        FOREIGN KEY (feed_item_id)
+        REFERENCES feed_items (id)
+        ON DELETE SET NULL,
+
+    CONSTRAINT uq_media_assets_storage_key
+        UNIQUE (storage_key),
+
+    CONSTRAINT chk_media_assets_type
+        CHECK (media_type IN ('IMAGE', 'VIDEO')),
+
+    CONSTRAINT chk_media_assets_status
+        CHECK (status IN ('PENDING', 'READY', 'FAILED', 'DELETED')),
+
+    CONSTRAINT chk_media_assets_visibility
+        CHECK (visibility IN (
+            'PUBLIC',
+            'AUTHENTICATED',
+            'FRIENDS',
+            'PRIVATE'
+        )),
+
+    CONSTRAINT chk_media_assets_size
+        CHECK (size_bytes >= 0),
+
+    CONSTRAINT chk_media_assets_position
+        CHECK (position IS NULL OR position >= 0)
+);
+
+CREATE INDEX IF NOT EXISTS idx_media_assets_owner_id
+    ON media_assets (owner_id);
+
+CREATE INDEX IF NOT EXISTS idx_media_assets_status
+    ON media_assets (status);
+
+CREATE INDEX IF NOT EXISTS idx_media_assets_owner_status
+    ON media_assets (owner_id, status);
+
+CREATE INDEX IF NOT EXISTS media_assets_feed_item_id_idx
+    ON media_assets (feed_item_id);
+
+CREATE UNIQUE INDEX IF NOT EXISTS media_assets_feed_item_position_uidx
+    ON media_assets (feed_item_id, position)
+    WHERE feed_item_id IS NOT NULL
+      AND position IS NOT NULL;
+
+
+-- -----------------------------------------------------------------------------
+-- Posts
+-- -----------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS posts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    feed_item_id UUID NOT NULL,
+    title VARCHAR(255),
+    message_json TEXT,
+
+    CONSTRAINT fk_posts_feed_item
+        FOREIGN KEY (feed_item_id)
+        REFERENCES feed_items (id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT uq_posts_feed_item
+        UNIQUE (feed_item_id)
+);
+
+CREATE INDEX IF NOT EXISTS posts_feed_item_id_idx
+    ON posts (feed_item_id);
+
+
+-- -----------------------------------------------------------------------------
+-- Feed item likes
+-- -----------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS feed_item_likes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    feed_item_id UUID NOT NULL,
+    user_id UUID NOT NULL,
+    created_at BIGINT NOT NULL,
+
+    CONSTRAINT fk_feed_item_likes_feed_item
+        FOREIGN KEY (feed_item_id)
+        REFERENCES feed_items (id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_feed_item_likes_user
+        FOREIGN KEY (user_id)
+        REFERENCES users (id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT uq_feed_item_likes_feed_item_user
+        UNIQUE (feed_item_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS feed_item_likes_feed_item_id_idx
+    ON feed_item_likes (feed_item_id);
+
+CREATE INDEX IF NOT EXISTS feed_item_likes_user_id_idx
+    ON feed_item_likes (user_id);
+
+
+-- -----------------------------------------------------------------------------
+-- Feed item reactions
+--
+-- parent_reaction_id IS NULL     -> FeedItemComment
+-- parent_reaction_id IS NOT NULL -> FeedItemReply
+-- -----------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS feed_item_reactions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    feed_item_id UUID NOT NULL,
+    parent_reaction_id UUID,
+    author_id UUID NOT NULL,
+    content_json TEXT NOT NULL,
+    created_at BIGINT NOT NULL,
+    updated_at BIGINT NOT NULL,
+    deleted_at BIGINT,
+
+    CONSTRAINT fk_feed_item_reactions_feed_item
+        FOREIGN KEY (feed_item_id)
+        REFERENCES feed_items (id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_feed_item_reactions_author
+        FOREIGN KEY (author_id)
+        REFERENCES users (id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT chk_feed_item_reactions_not_self_parent
+        CHECK (
+            parent_reaction_id IS NULL
+            OR parent_reaction_id <> id
+        ),
+
+    CONSTRAINT uq_feed_item_reactions_id_feed_item
+        UNIQUE (id, feed_item_id),
+
+    CONSTRAINT fk_feed_item_reactions_parent
+        FOREIGN KEY (parent_reaction_id, feed_item_id)
+        REFERENCES feed_item_reactions (id, feed_item_id)
+        ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS feed_item_reactions_feed_item_id_idx
+    ON feed_item_reactions (feed_item_id);
+
+CREATE INDEX IF NOT EXISTS feed_item_reactions_parent_reaction_id_idx
+    ON feed_item_reactions (parent_reaction_id);
+
+CREATE INDEX IF NOT EXISTS feed_item_reactions_author_id_idx
+    ON feed_item_reactions (author_id);
+
+CREATE INDEX IF NOT EXISTS feed_item_reactions_feed_parent_created_idx
+    ON feed_item_reactions (
+        feed_item_id,
+        parent_reaction_id,
+        created_at
+    )
+    WHERE deleted_at IS NULL;
+
+
+-- -----------------------------------------------------------------------------
+-- Feed item reaction likes
+--
+-- Likes for both FeedItemComment and FeedItemReply.
+-- -----------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS feed_item_reaction_likes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    reaction_id UUID NOT NULL,
+    user_id UUID NOT NULL,
+    created_at BIGINT NOT NULL,
+
+    CONSTRAINT fk_feed_item_reaction_likes_reaction
+        FOREIGN KEY (reaction_id)
+        REFERENCES feed_item_reactions (id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_feed_item_reaction_likes_user
+        FOREIGN KEY (user_id)
+        REFERENCES users (id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT uq_feed_item_reaction_likes_reaction_user
+        UNIQUE (reaction_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS feed_item_reaction_likes_reaction_id_idx
+    ON feed_item_reaction_likes (reaction_id);
+
+CREATE INDEX IF NOT EXISTS feed_item_reaction_likes_user_id_idx
+    ON feed_item_reaction_likes (user_id);

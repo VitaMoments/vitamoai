@@ -8,6 +8,7 @@ data class PostRecord(
     override val authorId: Uuid,
     val title: String?,
     val messageJson: String?,
+    override val commentsEnabled: Boolean,
     override val createdAt: Instant,
     override val updatedAt: Instant,
     override val deletedAt: Instant?,

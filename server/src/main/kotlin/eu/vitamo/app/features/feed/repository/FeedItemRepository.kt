@@ -13,6 +13,7 @@ interface FeedItemRepository {
         title: String?,
         messageJson: String?,
         createdAt: Instant,
+        commentsEnabled: Boolean = true
     ): RepositoryResult<PostRecord>
 
     suspend fun findById(
@@ -37,6 +38,7 @@ interface FeedItemRepository {
         title: String?,
         messageJson: String?,
         updatedAt: Instant,
+        commentsEnabled: Boolean
     ): RepositoryResult<PostRecord>
 
     suspend fun delete(

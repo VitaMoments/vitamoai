@@ -5,7 +5,6 @@ import eu.vitamo.app.features.feed.entity.FeedItemEntity
 import eu.vitamo.app.features.feed.entity.FeedItemLikeEntity
 import eu.vitamo.app.features.feed.entity.PostEntity
 import eu.vitamo.app.features.feed.mapper.toPostRecord
-import eu.vitamo.app.features.feed.mapper.toReactionRecord
 import eu.vitamo.app.features.feed.model.PostRecord
 import eu.vitamo.app.features.feed.table.FeedItemLikeTable
 import eu.vitamo.app.features.feed.table.FeedItemTable
@@ -31,6 +30,7 @@ class FeedItemRepositoryImpl : FeedItemRepository {
         title: String?,
         messageJson: String?,
         createdAt: Instant,
+        commentsEnabled: Boolean
     ): RepositoryResult<PostRecord> = dbQuery {
 
         val feedItem = FeedItemEntity.new {
@@ -39,6 +39,7 @@ class FeedItemRepositoryImpl : FeedItemRepository {
                 table = UsersTable,
             )
             this.type = POST_TYPE
+            this.commentsEnabled = commentsEnabled
             this.createdAt = createdAt.epochSeconds
             this.updatedAt = createdAt.epochSeconds
             this.deletedAt = null
@@ -140,6 +141,7 @@ class FeedItemRepositoryImpl : FeedItemRepository {
                         deletedAt =
                             row[FeedItemTable.deletedAt]
                                 ?.let(Instant::fromEpochSeconds),
+                        commentsEnabled = row[FeedItemTable.commentsEnabled]
                     )
                 }
 
@@ -220,6 +222,7 @@ class FeedItemRepositoryImpl : FeedItemRepository {
         title: String?,
         messageJson: String?,
         updatedAt: Instant,
+        commentsEnabled: Boolean
     ): RepositoryResult<PostRecord> = dbQuery {
 
         val feedItem = FeedItemEntity.findById(feedItemId)
@@ -243,7 +246,7 @@ class FeedItemRepositoryImpl : FeedItemRepository {
 
         post.title = title
         post.messageJson = messageJson
-
+        feedItem.commentsEnabled = commentsEnabled
         feedItem.updatedAt = updatedAt.epochSeconds
 
         RepositoryResult.Success(
@@ -473,6 +476,7 @@ class FeedItemRepositoryImpl : FeedItemRepository {
             ),
             deletedAt = feedItem.deletedAt
                 ?.let(Instant::fromEpochSeconds),
+            commentsEnabled = feedItem.commentsEnabled
         )
 
     private companion object {

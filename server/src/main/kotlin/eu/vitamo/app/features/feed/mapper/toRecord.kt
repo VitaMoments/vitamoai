@@ -1,5 +1,6 @@
 package eu.vitamo.app.features.feed.mapper
 
+import eu.vitamo.app.api.contracts.feed.FeedItem
 import eu.vitamo.app.features.feed.model.FeedItemReactionRecord
 import eu.vitamo.app.features.feed.model.PostRecord
 import eu.vitamo.app.features.feed.table.FeedItemReactionTable
@@ -31,4 +32,5 @@ fun ResultRow.toPostRecord() =
         createdAt = Instant.fromEpochSeconds(this[FeedItemTable.createdAt],),
         updatedAt = Instant.fromEpochSeconds(this[FeedItemTable.updatedAt],),
         deletedAt = this[FeedItemTable.deletedAt]?.let(Instant::fromEpochSeconds,),
+        commentsEnabled = this[FeedItemTable.commentsEnabled]
     )

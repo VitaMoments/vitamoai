@@ -42,7 +42,7 @@ class VitaMoFirebaseMessagingService :
             )
 
             if (
-                authSessionCoordinator.state.value ==
+                authSessionCoordinator.state.value is
                 AuthStatus.Authenticated
             ) {
                 firebaseInstallationIdSynchronizer

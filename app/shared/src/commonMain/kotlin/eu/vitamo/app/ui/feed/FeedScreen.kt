@@ -15,6 +15,8 @@ import coil3.compose.LocalPlatformContext
 import coil3.network.ktor3.KtorNetworkFetcherFactory
 import coil3.request.crossfade
 import eu.vitamo.app.features.media.model.MediaUrlResolver
+import eu.vitamo.app.network.auth.AuthSessionCoordinator
+import eu.vitamo.app.network.auth.AuthStatus
 import eu.vitamo.app.ui.media.dialog.ProfileImageSourceDialog
 import eu.vitamo.app.ui.media.model.rememberFeedImagePickerLauncher
 import io.ktor.client.HttpClient
@@ -25,77 +27,65 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun FeedScreen(
     onCreatePostClicked: () -> Unit,
-    viewModel: FeedViewModel =
-        koinViewModel(),
+    viewModel: FeedViewModel = koinViewModel(),
+    authSessionCoordinator: AuthSessionCoordinator = koinInject(),
 ) {
-    val state by
-        viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsState()
+    val authStatus by authSessionCoordinator.state.collectAsState()
 
-    val listState =
-        rememberLazyListState()
+    val currentUser = (authStatus as AuthStatus.Authenticated).user
 
-    val snackbarHostState =
-        remember {
-            SnackbarHostState()
-        }
+    val listState = rememberLazyListState()
 
-    val httpClient =
-        koinInject<HttpClient>()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    val mediaUrlResolver =
-        koinInject<MediaUrlResolver>()
+    val httpClient = koinInject<HttpClient>()
 
-    val platformContext =
-        LocalPlatformContext.current
+    val mediaUrlResolver = koinInject<MediaUrlResolver>()
 
-    val imageLoader =
-        remember(
-            platformContext,
-            httpClient,
-        ) {
-            ImageLoader.Builder(
-                context = platformContext,
-            )
-                .components {
-                    add(
-                        KtorNetworkFetcherFactory(
-                            httpClient = httpClient,
-                        ),
-                    )
-                }
-                .crossfade(true)
-                .build()
+    val platformContext = LocalPlatformContext.current
+
+    val imageLoader = remember(platformContext, httpClient,) {
+        ImageLoader.Builder(
+            context = platformContext,)
+            .components {
+                add(
+                    KtorNetworkFetcherFactory(
+                        httpClient = httpClient,),)
+            }
+            .crossfade(true)
+            .build()
         }
 
     var showImageSourceDialog by remember {
         mutableStateOf(false)
     }
 
-    val imagePicker =
-        rememberFeedImagePickerLauncher(
-            onImagePicked =
-                viewModel::onImagePicked,
-            onError =
-                viewModel::onImagePickerError,
-        )
+//    val imagePicker =
+//        rememberFeedImagePickerLauncher(
+//            onImagePicked =
+//                viewModel::onImagePicked,
+//            onError =
+//                viewModel::onImagePickerError,
+//        )
 
     LaunchedEffect(
         viewModel,
         snackbarHostState,
     ) {
-        viewModel.effects.collect { effect ->
-            when (effect) {
-                FeedEffect.OpenCreatePost -> {
-                    onCreatePostClicked()
-                }
-
-                is FeedEffect.ShowMessage -> {
-                    snackbarHostState.showSnackbar(
-                        message = effect.message,
-                    )
-                }
-            }
-        }
+//        viewModel.effects.collect { effect ->
+//            when (effect) {
+//                FeedEffect.OpenCreatePost -> {
+//                    onCreatePostClicked()
+//                }
+//
+//                is FeedEffect.ShowMessage -> {
+//                    snackbarHostState.showSnackbar(
+//                        message = effect.message,
+//                    )
+//                }
+//            }
+//        }
     }
 
     FeedContent(
@@ -110,7 +100,7 @@ fun FeedScreen(
             viewModel::onEvent,
         onCreatePostClicked = {
             showImageSourceDialog = true
-        },
+        }
     )
 
     if (showImageSourceDialog) {
@@ -121,12 +111,12 @@ fun FeedScreen(
             onCameraClicked = {
                 showImageSourceDialog = false
 
-                imagePicker.launchCamera()
+//                imagePicker.launchCamera()
             },
             onGalleryClicked = {
                 showImageSourceDialog = false
 
-                imagePicker.launchGallery()
+//                imagePicker.launchGallery()
             },
         )
     }

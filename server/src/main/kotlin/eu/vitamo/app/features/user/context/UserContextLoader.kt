@@ -4,6 +4,7 @@ import eu.vitamo.app.api.contracts.friendship.FriendshipContext
 import eu.vitamo.app.api.contracts.media.MediaReference
 import eu.vitamo.app.api.contracts.media.MediaStatus
 import eu.vitamo.app.api.contracts.user.UserWithContext
+import eu.vitamo.app.api.contracts.user.capabilities.UserCapabilities
 import eu.vitamo.app.features.friendship.mapper.toFriendshipContext
 import eu.vitamo.app.features.friendship.model.FriendshipRecord
 import eu.vitamo.app.features.friendship.repository.FriendshipRepository
@@ -18,7 +19,9 @@ class UserContextLoader(
     private val friendshipsProvider: FriendshipsProvider,
     private val mediaAssetRepository: MediaAssetRepository,
     private val friendshipRepository: FriendshipRepository,
+    private val userCapabilitiesProvider: UserCapabilitiesProvider,
 ) {
+
     suspend fun load(
         currentUserId: Uuid,
         targetUser: UserRecord,
@@ -40,10 +43,20 @@ class UserContextLoader(
                 targetUserId = targetUser.id,
             )
 
+        val capabilities =
+            if (context.isSelf) {
+                resolveCapabilities(
+                    userId = targetUser.id,
+                )
+            } else {
+                null
+            }
+
         return UserWithContext(
             user = targetUser.toUser(
                 accessLevel = context.accessLevel,
                 profileImage = profileImage,
+                capabilities = capabilities,
             ),
             friendshipContext = friendshipContext,
         )
@@ -69,6 +82,23 @@ class UserContextLoader(
                 targetUsers = targetUsers,
             )
 
+        /*
+         * Capabilities horen alleen bij de ingelogde gebruiker.
+         * Daarom maximaal één keer ophalen.
+         */
+        val currentUserCapabilities =
+            if (
+                targetUsers.any { user ->
+                    user.id == currentUserId
+                }
+            ) {
+                resolveCapabilities(
+                    userId = currentUserId,
+                )
+            } else {
+                null
+            }
+
         return targetUsers.map { targetUser ->
             val context =
                 contexts[targetUser.id]
@@ -83,19 +113,14 @@ class UserContextLoader(
                 )
 
             val friendshipContext =
-                if (
-                    currentUserId ==
-                    targetUser.id
-                ) {
+                if (context.isSelf) {
                     FriendshipContext()
                 } else {
                     friendshipsByUserId[
                         targetUser.id
                     ]?.toFriendshipContext(
-                        currentUserId =
-                            currentUserId,
-                    )
-                        ?: FriendshipContext()
+                        currentUserId = currentUserId,
+                    ) ?: FriendshipContext()
                 }
 
             UserWithContext(
@@ -104,6 +129,12 @@ class UserContextLoader(
                         context.accessLevel,
                     profileImage =
                         profileImage,
+                    capabilities =
+                        if (context.isSelf) {
+                            currentUserCapabilities
+                        } else {
+                            null
+                        },
                 ),
                 friendshipContext =
                     friendshipContext,
@@ -163,6 +194,19 @@ class UserContextLoader(
         currentUserId: Uuid,
         targetUsers: List<UserRecord>,
     ): Map<Uuid, FriendshipRecord> {
+        val targetUserIds =
+            targetUsers
+                .asSequence()
+                .map(UserRecord::id)
+                .filter { targetUserId ->
+                    targetUserId != currentUserId
+                }
+                .toList()
+
+        if (targetUserIds.isEmpty()) {
+            return emptyMap()
+        }
+
         return when (
             val result =
                 friendshipRepository
@@ -170,9 +214,7 @@ class UserContextLoader(
                         currentUserId =
                             currentUserId,
                         targetUserIds =
-                            targetUsers.map(
-                                UserRecord::id,
-                            ),
+                            targetUserIds,
                     )
         ) {
             is RepositoryResult.Success -> {
@@ -184,6 +226,25 @@ class UserContextLoader(
             }
         }
     }
+
+    private suspend fun resolveCapabilities(
+        userId: Uuid,
+    ): UserCapabilities =
+        when (
+            val result =
+                userCapabilitiesProvider.resolve(
+                    userId = userId,
+                )
+        ) {
+            is RepositoryResult.Success -> {
+                result.data
+            }
+
+            is RepositoryResult.Error -> {
+                userCapabilitiesProvider
+                    .basicCapabilities()
+            }
+        }
 
     private suspend fun loadProfileImage(
         user: UserRecord,

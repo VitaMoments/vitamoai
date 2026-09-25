@@ -15,7 +15,6 @@ class PersistentCookieStorage(
     private data class StoredCookie(
         val cookie: Cookie,
     )
-
     private val lock = Mutex()
     private val cookies = mutableListOf<StoredCookie>()
 

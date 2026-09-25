@@ -67,7 +67,9 @@ class AuthRepositoryImpl(
 
         return when (result) {
             is ApiResult.Success -> {
-                authSessionCoordinator.markAuthenticated()
+                authSessionCoordinator.markAuthenticated(
+                    user = result.data.user
+                )
 
                 firebaseInstallationIdSynchronizer
                     .synchronizeStored()
@@ -125,7 +127,6 @@ class AuthRepositoryImpl(
         } finally {
             authSessionCoordinator.signOut()
         }
-
         return result.toRepositoryResult {
             Unit
         }

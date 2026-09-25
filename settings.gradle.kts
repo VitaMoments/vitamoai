@@ -1,4 +1,5 @@
 rootProject.name = "VitamoAI"
+
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
@@ -10,6 +11,7 @@ pluginManagement {
                 includeGroupAndSubgroups("com.google")
             }
         }
+
         mavenCentral()
         gradlePluginPortal()
     }
@@ -24,7 +26,24 @@ dependencyResolutionManagement {
                 includeGroupAndSubgroups("com.google")
             }
         }
+
         mavenCentral()
+
+        maven {
+            name = "GitHubPackages"
+
+            url = uri("https://maven.pkg.github.com/fberendhaus/foundations")
+
+            credentials {
+                username = providers
+                        .gradleProperty("gpr.user")
+                        .orNull
+
+                password = providers
+                        .gradleProperty("gpr.key")
+                        .orNull
+            }
+        }
     }
 }
 

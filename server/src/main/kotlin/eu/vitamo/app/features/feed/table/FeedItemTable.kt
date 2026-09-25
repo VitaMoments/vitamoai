@@ -13,6 +13,10 @@ object FeedItemTable : UuidTable(
         onDelete = ReferenceOption.CASCADE,
     ).index("feed_items_author_id_idx")
 
+    val commentsEnabled = bool(
+        name = "comments_enabled",
+    ).default(true)
+
     val type = varchar(
         name = "type",
         length = 32,

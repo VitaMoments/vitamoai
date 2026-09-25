@@ -4,6 +4,7 @@ import eu.vitamo.app.api.contracts.media.MediaReference
 import eu.vitamo.app.api.contracts.user.AuthenticatedUser
 import eu.vitamo.app.api.contracts.user.PublicUser
 import eu.vitamo.app.api.contracts.user.User
+import eu.vitamo.app.api.contracts.user.capabilities.UserCapabilities
 import eu.vitamo.app.features.user.context.UserAccessLevel
 import eu.vitamo.app.features.user.entity.UserEntity
 import eu.vitamo.app.features.user.model.UserCredentialsRecord
@@ -53,43 +54,61 @@ fun searchPredicate(
     includeSelf: Boolean = false,
     includeRemoved: Boolean = true,
 ): Op<Boolean> {
-    val excludeMe = if (includeSelf) {
-        Op.TRUE
-    } else {
-        UsersTable.id neq meId
-    }
+    val excludeMe =
+        if (includeSelf) {
+            Op.TRUE
+        } else {
+            UsersTable.id neq meId
+        }
 
-    val excludeRemoved = if (includeRemoved) {
-        Op.TRUE
-    } else {
-        UsersTable.deletedAt.isNull()
-    }
+    val excludeRemoved =
+        if (includeRemoved) {
+            Op.TRUE
+        } else {
+            UsersTable.deletedAt.isNull()
+        }
 
-    val base = excludeMe and excludeRemoved
+    val base =
+        excludeMe and excludeRemoved
 
-    val query = needle
-        ?.trim()
-        ?.takeIf(String::isNotBlank)
-        ?.lowercase()
-        ?: return base
+    val query =
+        needle
+            ?.trim()
+            ?.takeIf(String::isNotBlank)
+            ?.lowercase()
+            ?: return base
 
-    val pattern = "%$query%"
+    val pattern =
+        "%$query%"
 
     val matches =
         (
                 UsersTable.firstName.isNotNull() and
-                        (UsersTable.firstName.lowerCase() like pattern)
+                        (
+                                UsersTable.firstName
+                                    .lowerCase() like pattern
+                                )
                 ) or
                 (
                         UsersTable.lastName.isNotNull() and
-                                (UsersTable.lastName.lowerCase() like pattern)
+                                (
+                                        UsersTable.lastName
+                                            .lowerCase() like pattern
+                                        )
                         ) or
                 (
                         UsersTable.alias.isNotNull() and
-                                (UsersTable.alias.lowerCase() like pattern)
+                                (
+                                        UsersTable.alias
+                                            .lowerCase() like pattern
+                                        )
                         ) or
                 (
-                        UsersTable.displayName.isNotNull() and (UsersTable.displayName.lowerCase() like pattern)
+                        UsersTable.displayName.isNotNull() and
+                                (
+                                        UsersTable.displayName
+                                            .lowerCase() like pattern
+                                        )
                         )
 
     return base and matches
@@ -113,10 +132,12 @@ internal fun ResultRow.toUserRecord(): UserRecord =
             this[UsersTable.updatedAt],
         ),
         emailVerifiedAt = this[UsersTable.emailVerifiedAt],
-        deletedAt = this[UsersTable.deletedAt]?.let {
-            Instant.fromEpochMilliseconds(it)
-        },
-        profileImageId = this[UsersTable.profileImageId],
+        deletedAt =
+            this[UsersTable.deletedAt]?.let {
+                Instant.fromEpochMilliseconds(it)
+            },
+        profileImageId =
+            this[UsersTable.profileImageId],
     )
 
 fun UserRecord.toPublicUser(
@@ -132,6 +153,7 @@ fun UserRecord.toPublicUser(
 
 fun UserRecord.toAuthenticatedUser(
     profileImage: MediaReference?,
+    capabilities: UserCapabilities,
 ): AuthenticatedUser =
     AuthenticatedUser(
         id = id,
@@ -144,11 +166,13 @@ fun UserRecord.toAuthenticatedUser(
         birthDate = birthDate,
         email = email,
         profileImage = profileImage,
+        capabilities = capabilities,
     )
 
 fun UserRecord.toUser(
     accessLevel: UserAccessLevel,
     profileImage: MediaReference?,
+    capabilities: UserCapabilities? = null,
 ): User =
     when (accessLevel) {
         UserAccessLevel.PUBLIC ->
@@ -159,5 +183,10 @@ fun UserRecord.toUser(
         UserAccessLevel.SELF ->
             toAuthenticatedUser(
                 profileImage = profileImage,
+                capabilities = requireNotNull(
+                    capabilities,
+                ) {
+                    "Capabilities are required for authenticated users"
+                },
             )
     }

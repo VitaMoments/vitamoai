@@ -18,22 +18,25 @@ fun App(
     onNotificationActionConsumed: () -> Unit = {},
 ) {
     val authSessionCoordinator: AuthSessionCoordinator = koinInject()
-    val appViewModel: AppViewModel = koinViewModel()
-    val appState by appViewModel.state.collectAsState()
     val firebaseInstallationIdSynchronizer: FirebaseInstallationIdSynchronizer = koinInject()
+    val appViewModel: AppViewModel = koinViewModel()
 
-    LaunchedEffect(
-        authSessionCoordinator,
-        firebaseInstallationIdSynchronizer,
-    ) {
+    val appState by appViewModel.state.collectAsState()
+    val authStatus by authSessionCoordinator.state.collectAsState()
+
+    LaunchedEffect(authSessionCoordinator) {
         authSessionCoordinator.bootstrap()
+    }
 
-        if (authSessionCoordinator.state.value == AuthStatus.Authenticated) {
+    LaunchedEffect(authStatus) {
+        if (authStatus is AuthStatus.Authenticated) {
             firebaseInstallationIdSynchronizer.synchronizeStored()
         }
     }
 
-    AppTheme(mode = appState.themeMode) {
+    AppTheme(
+        mode = appState.themeMode,
+    ) {
         NavigationRoot(
             initialDeepLink = initialDeepLink,
             notificationAction = notificationAction,

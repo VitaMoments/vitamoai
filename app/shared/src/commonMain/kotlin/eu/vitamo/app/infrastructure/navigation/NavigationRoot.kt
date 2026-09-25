@@ -69,7 +69,7 @@ fun NavigationRoot(
     }
 
     val initialDestination = when (authState) {
-        AuthStatus.Authenticated -> MainDestination.Home
+        is AuthStatus.Authenticated -> MainDestination.Home
 
         AuthStatus.Unauthenticated ->
             parseAuthDeepLink(initialDeepLink)
@@ -91,7 +91,7 @@ fun NavigationRoot(
         ) {
             val action = notificationAction ?: return@LaunchedEffect
 
-            if (authState != AuthStatus.Authenticated) { return@LaunchedEffect }
+            if (authState !is AuthStatus.Authenticated) { return@LaunchedEffect }
 
             when (action) {
                 is PushNotificationAction.OpenFriendRequests -> {

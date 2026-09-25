@@ -2,14 +2,16 @@ package eu.vitamo.app.features.auth.usecase
 
 import eu.vitamo.app.api.contracts.auth.LoginRequest
 import eu.vitamo.app.api.contracts.device.ClientContext
+import eu.vitamo.app.api.contracts.user.capabilities.UserCapabilities
 import eu.vitamo.app.exception.ApiException
-import eu.vitamo.app.exception.AuthException.InvalidCredentials
 import eu.vitamo.app.exception.AuthException.EmailNotVerified
+import eu.vitamo.app.exception.AuthException.InvalidCredentials
 import eu.vitamo.app.features.auth.model.LoginSession
 import eu.vitamo.app.features.auth.service.JWTService
 import eu.vitamo.app.features.auth.service.RefreshTokenService
 import eu.vitamo.app.features.device.model.DeviceRecord
 import eu.vitamo.app.features.device.repository.DeviceRepository
+import eu.vitamo.app.features.user.context.UserCapabilitiesProvider
 import eu.vitamo.app.features.user.mapper.toAuthenticatedUser
 import eu.vitamo.app.features.user.repository.UserRepository
 import eu.vitamo.app.infrastructure.security.PasswordHashService
@@ -23,33 +25,40 @@ class LoginUseCase(
     private val passwordHashService: PasswordHashService,
     private val jwtService: JWTService,
     private val refreshTokenService: RefreshTokenService,
+    private val userCapabilitiesProvider: UserCapabilitiesProvider,
 ) {
 
     suspend fun login(
         request: LoginRequest,
     ): LoginSession {
-        val email = normalizeEmail(
-            request.email,
-        )
+        val email =
+            normalizeEmail(
+                request.email,
+            )
 
-        val credentials = when (
-            val result =
-                userRepository.findUserWithCredentials(email)
-        ) {
-            is RepositoryResult.Success ->
-                result.data
-
-            is RepositoryResult.Error ->
-                when (result.error) {
-                    is RepositoryError.NotFound ->
-                        throw InvalidCredentials()
-
-                    else ->
-                        throw ApiException.Internal(
-                            message = "Failed to retrieve user credentials.",
+        val credentials =
+            when (
+                val result =
+                    userRepository
+                        .findUserWithCredentials(
+                            email,
                         )
-                }
-        }
+            ) {
+                is RepositoryResult.Success ->
+                    result.data
+
+                is RepositoryResult.Error ->
+                    when (result.error) {
+                        is RepositoryError.NotFound ->
+                            throw InvalidCredentials()
+
+                        else ->
+                            throw ApiException.Internal(
+                                message =
+                                    "Failed to retrieve user credentials.",
+                            )
+                    }
+            }
 
         val (user, passwordHash) =
             credentials
@@ -68,12 +77,18 @@ class LoginUseCase(
             throw EmailNotVerified()
         }
 
-        val device = getOrCreateDevice(
-            userId = user.id,
-            context = request.clientContext,
-            firebaseInstallationId =
-                request.firebaseInstallationId,
-        )
+        val capabilities =
+            resolveCapabilities(
+                userId = user.id,
+            )
+
+        val device =
+            getOrCreateDevice(
+                userId = user.id,
+                context = request.clientContext,
+                firebaseInstallationId =
+                    request.firebaseInstallationId,
+            )
 
         val accessToken =
             jwtService.generateAccessToken(
@@ -91,30 +106,57 @@ class LoginUseCase(
         )
 
         return LoginSession(
-            user = user.toAuthenticatedUser(null),
+            user = user.toAuthenticatedUser(
+                profileImage = null,
+                capabilities = capabilities,
+            ),
             accessToken = accessToken,
             refreshToken = refreshToken,
         )
     }
 
+    private suspend fun resolveCapabilities(
+        userId: Uuid,
+    ): UserCapabilities =
+        when (
+            val result =
+                userCapabilitiesProvider.resolve(
+                    userId = userId,
+                )
+        ) {
+            is RepositoryResult.Success -> {
+                result.data
+            }
+
+            is RepositoryResult.Error -> {
+                throw ApiException.Internal(
+                    message =
+                        "Failed to resolve user capabilities.",
+                )
+            }
+        }
+
     private suspend fun getOrCreateDevice(
         userId: Uuid,
         context: ClientContext,
-        firebaseInstallationId: String?
+        firebaseInstallationId: String?,
     ): DeviceRecord {
         return when (
-            val result = deviceRepository.upsert(
-                userId = userId,
-                context = context,
-                firebaseInstallationId = firebaseInstallationId
-            )
+            val result =
+                deviceRepository.upsert(
+                    userId = userId,
+                    context = context,
+                    firebaseInstallationId =
+                        firebaseInstallationId,
+                )
         ) {
             is RepositoryResult.Success ->
                 result.data
 
             is RepositoryResult.Error ->
                 throw ApiException.Internal(
-                    message = "Failed to register client device.",
+                    message =
+                        "Failed to register client device.",
                 )
         }
     }

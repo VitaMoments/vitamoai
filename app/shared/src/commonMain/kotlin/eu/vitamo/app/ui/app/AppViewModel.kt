@@ -49,35 +49,4 @@ class AppViewModel(
                 }
         }
     }
-
-    fun setThemeMode(
-        mode: ThemeMode,
-    ) {
-        viewModelScope.launch {
-            preferencesStorage.setThemeMode(
-                mode = ThemeMode.toStored(mode),
-            )
-        }
-    }
-
-    fun setLastRoute(
-        route: String,
-    ) {
-        viewModelScope.launch {
-            preferencesStorage.setLastRoute(
-                route = route,
-            )
-        }
-    }
-
-    fun postponeDailyQuestionUntil(
-        isoInstant: String?,
-    ) {
-        viewModelScope.launch {
-            preferencesStorage
-                .setDailyQuestionPostponeUntilIso(
-                    isoInstant = isoInstant,
-                )
-        }
-    }
 }

@@ -12,6 +12,9 @@ application {
 
 dependencies {
     api(projects.core)
+
+    implementation(libs.foundation.auth.server)
+
     implementation(libs.koin.core)
     implementation(libs.logback)
     implementation(libs.ktor.serverCore)

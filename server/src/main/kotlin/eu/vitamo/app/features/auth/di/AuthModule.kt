@@ -49,9 +49,9 @@ val authModule = module {
 
     single { RegisterUseCase(get(), get(), get(), get(), get(), get()) }
     single { ResendEmailVerificationUseCase(get(), get(), get(), get(), get()) }
-    single { RefreshSessionUseCase(get(), get(), get()) }
-    single { VerifyEmailUseCase(get(), get(), get()) }
-    single { LoginUseCase(get(), get(), get(), get(), get()) }
+    single { RefreshSessionUseCase(get(), get(), get(), get()) }
+    single { VerifyEmailUseCase(get(), get(), get(), get()) }
+    single { LoginUseCase(get(), get(), get(), get(), get(), get()) }
     single { ResetPasswordUseCase(get(), get(), get(), get()) }
     single { ForgotPasswordUseCase(get(), get(), get(), get()) }
 }

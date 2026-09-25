@@ -22,6 +22,10 @@ import eu.vitamo.app.features.feed.usecase.UnlikeFeedItemReactionUseCase
 import eu.vitamo.app.features.feed.usecase.UnlikeFeedItemUseCase
 import eu.vitamo.app.features.feed.usecase.CreateFeedItemUseCase
 import eu.vitamo.app.features.friendship.di.friendshipModule
+import eu.vitamo.app.features.user.context.UserCapabilitiesProvider
+import eu.vitamo.app.features.user.context.UserCapabilitiesProviderImpl
+import eu.vitamo.app.features.user.repository.UserSettingsRepository
+import eu.vitamo.app.features.user.repository.UserSettingsRepositoryImpl
 import org.koin.dsl.module
 
 val feedModule = module {
@@ -43,6 +47,8 @@ val feedModule = module {
     single<FeedItemContextProvider> {
         FeedItemContextProviderImpl(
             feedItemRepository = get(),
+            userCapabilitiesProvider = get(),
+            userSettingsRepository = get()
         )
     }
 

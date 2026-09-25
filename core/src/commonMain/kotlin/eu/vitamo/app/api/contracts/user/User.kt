@@ -3,6 +3,7 @@ package eu.vitamo.app.api.contracts.user
 import eu.vitamo.app.api.contracts.friendship.FriendshipContext
 import eu.vitamo.app.api.contracts.friendship.FriendshipState
 import eu.vitamo.app.api.contracts.media.MediaReference
+import eu.vitamo.app.api.contracts.user.capabilities.UserCapabilities
 import eu.vitamo.app.serialization.UuidSerializer
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Contextual
@@ -34,6 +35,7 @@ data class AuthenticatedUser(
     val alias: String?,
     val birthDate: LocalDate?,
     val email: String,
+    val capabilities: UserCapabilities
 ) : User
 
 @Serializable
