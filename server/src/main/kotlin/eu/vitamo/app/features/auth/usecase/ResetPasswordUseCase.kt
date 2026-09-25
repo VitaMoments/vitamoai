@@ -2,22 +2,21 @@ package eu.vitamo.app.features.auth.usecase
 
 import eu.vitamo.app.api.contracts.auth.ResetPasswordRequest
 import eu.vitamo.app.api.contracts.auth.ResetPasswordResponse
-import eu.vitamo.app.database.helpers.kotlinUuid
 import eu.vitamo.app.exception.ApiException
 import eu.vitamo.app.exception.AuthException
 import eu.vitamo.app.features.auth.repository.PasswordResetTokenRepository
 import eu.vitamo.app.features.auth.service.PasswordResetTokenService
 import eu.vitamo.app.features.user.repository.UserRepository
-import eu.vitamo.app.infrastructure.security.PasswordHashService
 import eu.vitamo.app.validation.EmailValidator
 import eu.vitamo.app.validation.PasswordValidator
+import io.github.falcoberendhaus.foundation.auth.server.security.PasswordHasher
 import kotlin.time.Clock
 
 class ResetPasswordUseCase(
     val tokenRepository: PasswordResetTokenRepository,
     val userRepository: UserRepository,
     val tokenService: PasswordResetTokenService,
-    val passwordHashService: PasswordHashService
+    val passwordHashService: PasswordHasher
 ) {
     suspend operator fun invoke(request: ResetPasswordRequest) : ResetPasswordResponse {
         if (request.token.isBlank()) {
@@ -68,7 +67,7 @@ class ResetPasswordUseCase(
             throw AuthException.InvalidPasswordResetToken()
         }
 
-        val newPassword = passwordHashService.hashPassword(request.newPassword)
+        val newPassword = passwordHashService.hash(request.newPassword)
 
         userRepository.updatePassword(userid = userRecord.id, hashedPassword = newPassword)
 

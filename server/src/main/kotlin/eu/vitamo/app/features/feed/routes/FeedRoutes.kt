@@ -18,6 +18,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
+import io.ktor.utils.io.readBuffer
 import io.ktor.utils.io.readRemaining
 import kotlinx.io.readByteArray
 import kotlinx.serialization.json.Json
@@ -112,7 +113,7 @@ private inline fun <reified T> PartData.FormItem.getPayload(
 suspend fun PartData.FileItem.readAllBytesAndDispose(): ByteArray {
     return try {
         val channel = provider()
-        channel.readRemaining().readByteArray()
+        channel.readBuffer().readByteArray()
     } finally {
         release()
     }

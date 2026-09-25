@@ -14,15 +14,15 @@ import eu.vitamo.app.features.device.repository.DeviceRepository
 import eu.vitamo.app.features.user.context.UserCapabilitiesProvider
 import eu.vitamo.app.features.user.mapper.toAuthenticatedUser
 import eu.vitamo.app.features.user.repository.UserRepository
-import eu.vitamo.app.infrastructure.security.PasswordHashService
 import eu.vitamo.app.repository.RepositoryError
 import eu.vitamo.app.repository.RepositoryResult
+import io.github.falcoberendhaus.foundation.auth.server.security.PasswordHasher
 import kotlin.uuid.Uuid
 
 class LoginUseCase(
     private val userRepository: UserRepository,
     private val deviceRepository: DeviceRepository,
-    private val passwordHashService: PasswordHashService,
+    private val passwordHashService: PasswordHasher,
     private val jwtService: JWTService,
     private val refreshTokenService: RefreshTokenService,
     private val userCapabilitiesProvider: UserCapabilitiesProvider,
@@ -64,9 +64,9 @@ class LoginUseCase(
             credentials
 
         val passwordIsValid =
-            passwordHashService.verifyPassword(
-                rawPassword = request.password,
-                passwordHash = passwordHash,
+            passwordHashService.verify(
+                password = request.password,
+                hash = passwordHash,
             )
 
         if (!passwordIsValid) {

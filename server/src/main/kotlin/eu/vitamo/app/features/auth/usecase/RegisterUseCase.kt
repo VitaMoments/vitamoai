@@ -2,17 +2,16 @@ package eu.vitamo.app.features.auth.usecase
 
 import eu.vitamo.app.api.contracts.auth.RegisterRequest
 import eu.vitamo.app.api.contracts.auth.RegisterResponse
-import eu.vitamo.app.exception.ApiException
 import eu.vitamo.app.exception.AuthException
 import eu.vitamo.app.features.auth.model.EmailVerificationPurpose
 import eu.vitamo.app.features.auth.repository.EmailVerificationChallengeRepository
 import eu.vitamo.app.features.auth.service.EmailVerificationCodeService
 import eu.vitamo.app.features.auth.service.AuthMailSender
 import eu.vitamo.app.features.auth.service.TokenHashService
-import eu.vitamo.app.infrastructure.security.PasswordHashService
 import eu.vitamo.app.features.user.repository.UserRepository
 import eu.vitamo.app.validation.EmailValidator
 import eu.vitamo.app.validation.PasswordValidator
+import io.github.falcoberendhaus.foundation.auth.server.security.PasswordHasher
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 
@@ -22,7 +21,7 @@ class RegisterUseCase(
     private val codeService: EmailVerificationCodeService,
     private val mailSender: AuthMailSender,
     private val tokenHashService: TokenHashService,
-    private val passwordHashService: PasswordHashService,
+    private val passwordHashService: PasswordHasher,
 ) {
     suspend fun register(request: RegisterRequest): RegisterResponse {
         val email = EmailValidator.normalizeOrThrow(request.email) {
@@ -46,7 +45,7 @@ class RegisterUseCase(
         val user = userRepository.createUser(
             email = email,
             displayName = request.displayName.trim(),
-            hashedPassword = passwordHashService.hashPassword(request.password),
+            hashedPassword = passwordHashService.hash(request.password),
             firstName = request.firstName?.trim()?.ifBlank { null },
             lastName = request.lastName?.trim()?.ifBlank { null },
             alias = request.alias?.trim()?.ifBlank { null },

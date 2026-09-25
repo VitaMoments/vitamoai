@@ -28,6 +28,7 @@ dependencyResolutionManagement {
         }
 
         mavenCentral()
+        mavenLocal()
 
         maven {
             name = "GitHubPackages"

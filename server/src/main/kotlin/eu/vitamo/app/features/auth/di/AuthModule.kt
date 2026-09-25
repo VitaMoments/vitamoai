@@ -22,12 +22,10 @@ import eu.vitamo.app.features.auth.usecase.ResendEmailVerificationUseCase
 import eu.vitamo.app.features.auth.usecase.RefreshSessionUseCase
 import eu.vitamo.app.features.auth.usecase.ResetPasswordUseCase
 import eu.vitamo.app.features.auth.usecase.VerifyEmailUseCase
-import eu.vitamo.app.features.user.repository.UserRepositoryImpl
-import eu.vitamo.app.features.user.repository.UserRepository
 import eu.vitamo.app.mail.MailService
 import eu.vitamo.app.mail.template.MailTemplateRenderer
-import eu.vitamo.app.infrastructure.security.BCryptPasswordHashService
-import eu.vitamo.app.infrastructure.security.PasswordHashService
+import io.github.falcoberendhaus.foundation.auth.bcrypt.BCryptPasswordHasher
+import io.github.falcoberendhaus.foundation.auth.server.security.PasswordHasher
 import org.koin.dsl.module
 
 val authModule = module {
@@ -35,7 +33,7 @@ val authModule = module {
     single { AuthCookieConfig.fromEnvironment() }
 
     single<TokenHashService> { Sha256TokenHashService() }
-    single<PasswordHashService> { BCryptPasswordHashService() }
+    single<PasswordHasher> { BCryptPasswordHasher() }
     single<RefreshTokenService> { RefreshTokenService(get()) }
 
     single<EmailVerificationChallengeRepository> { ExposedEmailVerificationChallengeRepository() }
